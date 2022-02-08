@@ -20,6 +20,8 @@ Route::get('/', function () {
 });
 
 Route::get('/crawler', [CrawlerController::class, 'index']);
+Route::get('/tradein', [CrawlerController::class, 'parseTradein']);
+Route::get('/parse-links', [CrawlerController::class, 'parse_links']);
 Route::get('/parse', [CrawlerController::class, 'parse']);
 Route::get('/milano', [CrawlerController::class, 'milano']);
 Route::get('/milano-products', [CrawlerController::class, 'milano_products']);

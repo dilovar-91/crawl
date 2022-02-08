@@ -586,8 +586,8 @@ class CrawlerController extends Controller
     public function exportCsv(Request $request)
     {
             $fileName = 'tasks.csv';
-            $products = MilanoProduct::whereNull('parent_id')->get();
-
+            $products = MilanoProduct::get();
+            
             $headers = array(
                 "Content-type"        => "text/csv",
                 "Content-Disposition" => "attachment; filename=$fileName",
@@ -605,7 +605,7 @@ class CrawlerController extends Controller
 
                 foreach ($products as $product) {
 
-                    
+                    return json_decode($product->images);
                     $row['Тип']  = "variable";
                     $row['Артикул']  = $product->id.'-'.Str::slug($product->model, '-');
                     $row['Имя']  = $product->title;
@@ -635,9 +635,13 @@ class CrawlerController extends Controller
                     $row['Метки']  = "";
                     $row['Класс доставки']  = "";
                     $images="";
-                    foreach($product->images as $image){                        
-                        $images  = $images . "https://milano-collection.com/wp-content/uploads/2021/1/".$image.', ';
-                    }                    
+                    if (count($product->img>0)){
+                        foreach($product->images as $image){        
+                                            
+                            $images  = $images . "https://milano-collection.com/wp-content/uploads/2021/".getNum($product->id).$image.', ';
+                        } 
+                    }
+                                       
                     $row['Изображения']  = substr($images, 0, -2);
                     $row['Лимит загрузок']  = "";
                     $row['Число дней до просроченной загрузки']  = "";                   
@@ -666,6 +670,20 @@ class CrawlerController extends Controller
             return response()->stream($callback, 200, $headers);
         }
 
+        function getNum($id) {
+            if ($id >0 and $id<=1000){
+                return '1/';
+            }
+            if ($id >1000 and $id<=2000){
+                return '2/';
+            }            
+            if ($id >3000 and $id<=4000){
+                return '3/';
+            }            
+            if ($id >4000 and $id<=5000){
+                return '5/';
+            }
+        }
         function limit_text($text, $limit) {
             if (str_word_count($text, 0) > $limit) {
                 $words = str_word_count($text, 2);
@@ -753,4 +771,239 @@ class CrawlerController extends Controller
             } 
             return response()->json($product);
         }
+
+        public function tradein()
+    {
+        try {
+            $response = $this->client->get('https://www.tradein-bc.ru/Toyota/Corolla/COROLLA-55254/'); 
+            // get content and pass to the crawler
+            $content = $response->getBody()->getContents();
+            $crawler = new Crawler($content);
+            
+            $_this = $this;
+            $array = [
+                'title' => $this->hasContent($crawler->filter('h1')) != false ? $crawler->filter('h1')->text() : '',
+                'price' => $this->hasContent($crawler->filter('span.pr')) != false ? $crawler->filter('span.pr')->text() : '',
+                'feature' => $this->hasContent($crawler->filter('table.cartable2')) != false ? $crawler->filter('table.cartable2')->outerHtml() : '',
+                'tpad2' => $this->hasContent($crawler->filter('p.tpad2')) != false ? $crawler->filter('p.tpad2')->outerHtml() : '',
+                'featured_image' => [
+                     $this->hasContent($crawler->filter('a.photo0')) != false ? $crawler->filter('a.photo0')->eq(0)->attr('href') : '',
+                     $this->hasContent($crawler->filter('a.photo1')) != false ? $crawler->filter('a.photo1')->eq(0)->attr('href') : '',
+                     $this->hasContent($crawler->filter('a.photo2')) != false ? $crawler->filter('a.photo2')->eq(0)->attr('href') : '',
+                     $this->hasContent($crawler->filter('a.photo3')) != false ? $crawler->filter('a.photo3')->eq(0)->attr('href') : '',
+                ]
+            ];
+
+            $images = $crawler->filter('div.main-image .swiper-slide')
+                            ->each(function (Crawler $node, $i) use($_this) {
+                                return $node->filter('img')->attr('src');
+                                
+                            }
+                        );
+
+            $item = new Universal();
+            $item = 
+            
+            dd($array);
+           // header("Content-type: image/gif");
+           //echo base64_decode($crawler->filter('div.swiper-slide img'));
+            
+        } catch ( Exception $e ) {
+            echo $e->getMessage();
+        }
+    }
+
+
+
+    public function parse_links()
+    {
+        
+
+            $urls = array (
+                array('https://www.tradein-bc.ru/Audi/',1, 1),
+                array('https://www.tradein-bc.ru/BMW/',1, 1),
+                array('https://www.tradein-bc.ru/Cadillac/',1, 1),
+                array('https://www.tradein-bc.ru/Chery/',1, 1),
+                array('https://www.tradein-bc.ru/Chevrolet/',1, 1),
+                array('https://www.tradein-bc.ru/Chrysler/',1, 1),
+                array('https://www.tradein-bc.ru/Citroen/',1, 1),
+                array('https://www.tradein-bc.ru/Daewoo/',1, 1),
+                array('https://www.tradein-bc.ru/Datsun/',1, 1),
+                array('https://www.tradein-bc.ru/DongFeng/',1, 1),
+                array('https://www.tradein-bc.ru/Faw/',1, 1),
+                array('https://www.tradein-bc.ru/Fiat/',1, 1),
+                array('https://www.tradein-bc.ru/Ford/',1, 1),
+                array('https://www.tradein-bc.ru/Gaz/',1, 1),
+                array('https://www.tradein-bc.ru/Geely/',1, 1),
+                array('https://www.tradein-bc.ru/Genesis/',1, 1),
+                array('https://www.tradein-bc.ru/Haval/',1, 1),
+                array('https://www.tradein-bc.ru/Honda/',1, 1),
+                array('https://www.tradein-bc.ru/Hyundai/',1, 5),
+                array('https://www.tradein-bc.ru/Infiniti/',1, 1),
+                array('https://www.tradein-bc.ru/Jaguar/',1, 1),
+                array('https://www.tradein-bc.ru/Jeep/',1, 1),
+                array('https://www.tradein-bc.ru/Kia/',1, 4),
+                array('https://www.tradein-bc.ru/Lada/',1, 3),
+                array('https://www.tradein-bc.ru/Land_Rover/',1, 1),
+                array('https://www.tradein-bc.ru/Lexus/',1, 2),
+                array('https://www.tradein-bc.ru/Lifan/',1, 1),
+                array('https://www.tradein-bc.ru/Mazda/',1, 1),
+                array('https://www.tradein-bc.ru/Mercedes-Benz/',1, 2),
+                array('https://www.tradein-bc.ru/Mini/',1, 1),
+                array('https://www.tradein-bc.ru/Mitsubishi/',1, 1),
+                array('https://www.tradein-bc.ru/Nissan/',1, 3),
+                array('https://www.tradein-bc.ru/Opel/',1, 1),
+                array('https://www.tradein-bc.ru/Porsche/',1, 1),
+                array('https://www.tradein-bc.ru/Ravon/',1, 1),
+                array('https://www.tradein-bc.ru/Renault/',1, 2),
+                array('https://www.tradein-bc.ru/Skoda/',1, 2),
+                array('https://www.tradein-bc.ru/SsangYong/',1, 1),
+                array('https://www.tradein-bc.ru/Subaru/',1, 1),
+                array('https://www.tradein-bc.ru/Suzuki/',1, 1),
+                array('https://www.tradein-bc.ru/toyota/',1, 9),
+                array('https://www.tradein-bc.ru/UAZ/',1, 1),
+                array('https://www.tradein-bc.ru/volkswagen/',1, 3),
+                array('https://www.tradein-bc.ru/volvo/',1, 1),
+                array('https://www.tradein-bc.ru/Zotye/',1, 1)
+            );
+            $urls2 = array (
+                array('https://www.tradein-bc.ru/toyota/',1, 9),
+            );
+            foreach($urls2 as $key=>$ur1){
+                for ($i=$ur1[1]; $i<=$ur1[2]; $i++){
+                if ($ur1[2]>1)    {
+                    $response = $this->client->get($ur1[0].'#page-'.$i);
+                }
+                else {
+                    $response = $this->client->get($ur1[0]); // URL, where you want to fetch the content
+                }
+            $content = $response->getBody()->getContents();
+            $crawler = new Crawler( $content );
+            
+            $_this = $this;
+            
+            try {
+            $data = $crawler->filter('div.item')
+                            ->each(function (Crawler $node, $i) use($_this) {
+                                return $node;
+                                
+                            }
+                        );
+
+                       
+                                 
+
+                        foreach($data as $row){                        
+                            $link = new Link();
+                            if ($row->filter('a img')->attr('src')==='/img/no_image.png'){
+                                continue;
+                            }
+                            $link->link= 'https://www.tradein-bc.ru'.$row->filter('a')->attr('href');
+                            $link->title= $row->filter('div.fr a')->text();
+                            $link->param= $row->filter('div.param')->text();
+                            $link->price= $row->filter('div.price b')->text();
+                            $link->save();
+                        }
+
+                    } catch ( Exception $e ) {
+                        // echo $e->getMessage();
+                     }
+
+
+                //$array = [
+                 //   'title' => $this->hasContent($crawler->filter('div.fr')) != false ? $crawler->filter('div.fr a')->text() : '',
+                 //   'link' => $this->hasContent($crawler->filter('div.fr')) != false ? $crawler->filter('div.fr a')->eq(0)->attr('href') : '',
+                 //   'param' => $this->hasContent($crawler->filter('div.param')) != false ? $crawler->filter('div.param')->text() : '',
+                 //   'price' => $this->hasContent($crawler->filter('div.price b')) != false ? $crawler->filter('div.price b')->text() : '',
+    
+                    //'price' => $this->hasContent($crawler->filter('span.pr')) != false ? $crawler->filter('span.pr')->text() : $crawler->filter('div.current-price-container')->eq(0)->attr('content'),
+                    //'feature' => $this->hasContent($crawler->filter('table.cartable2')) != false ? $crawler->filter('table.cartable2')->outerHtml() : '',
+                   // 'tpad2' => $this->hasContent($crawler->filter('p.tpad2')) != false ? $crawler->filter('p.tpad2')->outerHtml() : '',
+                   /* 'featured_image' => [
+                         $this->hasContent($crawler->filter('a.photo0')) != false ? $crawler->filter('a.photo0')->eq(0)->attr('href') : '',
+                         $this->hasContent($crawler->filter('a.photo1')) != false ? $crawler->filter('a.photo1')->eq(0)->attr('href') : '',
+                         $this->hasContent($crawler->filter('a.photo2')) != false ? $crawler->filter('a.photo2')->eq(0)->attr('href') : '',
+                         $this->hasContent($crawler->filter('a.photo3')) != false ? $crawler->filter('a.photo3')->eq(0)->attr('href') : '',
+                    ] */
+                //];
+    
+              
+            }
+            //sleep(5);
+            }
+
+            
+            
+        
+    }
+
+
+    public function parseTradein(){
+        $links = Link::groupBy('link')->where('id', '>', 1873)->get();
+       //return count($links);
+        foreach($links as $link){
+
+            $response = $this->client->get($link->link); // URL, where you want to fetch the content
+            // get content and pass to the crawler
+            $content = $response->getBody()->getContents();
+            $crawler = new Crawler($content);
+            //return intval($crawler->filter('div.price-item')->text());
+            $_this = $this;
+            
+            $data = $crawler->filter('a.photo1')
+                            ->each(function (Crawler $node, $i) use($_this) {
+                                return $node->attr('href');
+                                
+                            }
+                        );
+
+                       array_unshift($data, 'https://www.tradein-bc.ru'.$crawler->filter('a.photo0')->attr('href'));
+
+                       //return $data;
+
+
+
+                        $urls = [];
+                        
+                       foreach ($data as $media) {
+
+                        //try{
+                            $image = file_get_contents($media);
+                            //$fname = basename($media).PHP_EOL;
+                            //file_put_contents(public_path($fname), $image);
+                            $name = substr($media, strrpos($media, '/') + 1);
+                            Storage::put('tradein_new/'.$this->getBetween($link->link, 'www.tradein-bc.ru/', '/').'/'.$this->getBetween($data[0], 'catalogauto/', '/').'/'.$name, $image);                           
+                           
+                            $urls[] = $image;
+
+                        //} catch ( Exception $e ) {
+                        //    echo $e->getMessage();
+                       // }
+                           
+
+                        }
+                        
+                        //return $urls;
+
+            $product = Link::find($link->id);
+            $product->feature = $crawler->filter('table.cartable2')->outerHtml();
+            //$product->complectation = $crawler->filter('table.cartable3')->outerHtml();
+            ///$product->description = $crawler->filter('table.cartable4')->outerHtml();
+            //$product->meta_title = $crawler->filter('title')->text();
+            //$product->meta_description = $crawler->filter('description')->text();
+           // if (count($urls)> 0) {
+            //    $product->image = $urls[0];           
+               $product->pictures = json_encode($urls);
+           // }
+           // $product->old_id = $this->getBetween($data[0], 'catalogauto/', '/');
+           // $product->mark = $this->getBetween($link, 'www.tradein-bc.ru/', '/');
+            $product->save();
+            //sleep(3);
+        
+    
+    }
+
+
+
+}
 }
