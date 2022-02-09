@@ -587,6 +587,7 @@ class CrawlerController extends Controller
     {
             $fileName = 'tasks.csv';
             $products = MilanoProduct::get();
+            //return $products;
             
             $headers = array(
                 "Content-type"        => "text/csv",
@@ -605,14 +606,14 @@ class CrawlerController extends Controller
 
                 foreach ($products as $product) {
 
-                    return json_decode($product->images);
-                    $row['Тип']  = "variable";
-                    $row['Артикул']  = $product->id.'-'.Str::slug($product->model, '-');
-                    $row['Имя']  = $product->title;
+                    //return json_decode($product->images);
+                    $row['Тип']  = "simple";
+                    $row['Артикул']  = 'AISA_'.Str::slug($product->model, '_');
+                    $row['Имя']  = $product->name;
                     $row['Опубликован']  = 1;
                     $row['рекомендуемый?']    = 0;
                     $row['Видимость в каталоге']    = 'visible';
-                    $row['Краткое описание']  = $product->title . ' '. $product->color_name;
+                    $row['Краткое описание']  = $product->name . ' '. $product->color_name;
                     $row['Описание']  = $product->description;
                     $row['Дата начала действия продажной цены']  = "";
                     $row['Дата окончания действия продажной цены']  = "";
@@ -630,15 +631,15 @@ class CrawlerController extends Controller
                     $row['Разрешить отзывы от клиентов?']  = 1;
                     $row['Примечание к покупке']  = "";
                     $row['Цена распродажи']  = "";
-                    $row['Базовая цена']  = $product->price;
+                    $row['Базовая цена']  = "";
                     $row['Категории']  = $product->category;
                     $row['Метки']  = "";
                     $row['Класс доставки']  = "";
                     $images="";
-                    if (count($product->img>0)){
-                        foreach($product->images as $image){        
+                    if (count($product->img)>0){
+                        foreach($product->img as $image){        
                                             
-                            $images  = $images . "https://milano-collection.com/wp-content/uploads/2021/".getNum($product->id).$image.', ';
+                            $images  = $images . "https://milano-collection.com/wp-content/uploads/2022/new/".$this->getNum($product->id).$image.', ';
                         } 
                     }
                                        
@@ -653,7 +654,7 @@ class CrawlerController extends Controller
                     $row['Текст кнопки']  = "";
                     $row['Позиция']  = 0;
                     $row['Имя атрибута 1']  = "Цвет";
-                    $row['Значение(-я) аттрибута(-ов) 1']  = "Бежевый, Белый, Голубой, Желтый, Зеленый, Коричневый, Красный, Оранжевый, Розовый, Салатовый, Серий, Фиолетовый, Черный";
+                    $row['Значение(-я) аттрибута(-ов) 1']  = 0; //"Бежевый, Белый, Голубой, Желтый, Зеленый, Коричневый, Красный, Оранжевый, Розовый, Салатовый, Серий, Фиолетовый, Черный";
                     $row['Видимость атрибута 1']  = 1;
                     $row['Глобальный атрибут 1']  = 1;
                     $row['Имя атрибута 2']  = "";
@@ -671,17 +672,32 @@ class CrawlerController extends Controller
         }
 
         function getNum($id) {
-            if ($id >0 and $id<=1000){
+            if ($id >0 and $id<=500){
                 return '1/';
             }
-            if ($id >1000 and $id<=2000){
+            if ($id >500 and $id<=1000){
                 return '2/';
             }            
-            if ($id >3000 and $id<=4000){
+            if ($id >1000 and $id<=1500){
                 return '3/';
             }            
-            if ($id >4000 and $id<=5000){
+            if ($id >1500 and $id<=2000){
                 return '5/';
+            }            
+            if ($id >2000 and $id<=2500){
+                return '6/';
+            }
+                       
+            if ($id >2500 and $id<=3000){
+                return '7/';
+            }
+                       
+            if ($id >3000 and $id<=3500){
+                return '8/';
+            }
+                       
+            if ($id >3500 and $id<=6000){
+                return '9/';
             }
         }
         function limit_text($text, $limit) {
@@ -1006,4 +1022,23 @@ class CrawlerController extends Controller
 
 
 }
+
+
+public function movePic(){
+
+    $products = MilanoProduct::get();
+    foreach($products as $product){
+    foreach ($product->img as $key=>$image){
+        try{
+            Storage::move('1/'.$image, 'new/'.$this->getNum($product->id).'/'.$image);
+        } 
+        catch(Exception $e){
+            continue;
+        }    
+       
+        //$images[]=$image_name;
+    }
+    }
+}
+
 }
