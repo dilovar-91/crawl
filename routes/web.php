@@ -33,3 +33,6 @@ Route::get('/rename-turkish', [CrawlerController::class, 'renameTurkish']);
 Route::get('/products', [CrawlerController::class, 'getProducts']);
 Route::get('/set-color', [CrawlerController::class, 'setColor2']);
 Route::get('/move-pic', [CrawlerController::class, 'movePic']);
+
+Route::get('/orekhvill-links', [CrawlerController::class, 'orekhvill']); 
+Route::get('/orekhvill-products', [CrawlerController::class, 'orekhvill_products']);

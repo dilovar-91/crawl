@@ -11,6 +11,7 @@ use App\Models\Link;
 use App\Models\Product;
 use App\Models\Attachment;
 use App\Models\MilanoProduct;
+use App\Models\OrekhvillProduct;
 use League\Flysystem\Adapter\Local;
 use League\Flysystem\Filesystem;
 use Illuminate\Support\Facades\Storage;
@@ -54,6 +55,36 @@ class CrawlerController extends Controller
                         foreach($data as $row){
                             $link = new Link();
                             $link->link= "https://positronica.ru".$row;
+                            $link->save();
+                        }
+                        
+
+
+
+        }
+    }
+    public function orekhvill(){
+        $url = "https://xn--e1akkch1aa2a.xn--p1ai/goods/?sort=popular&order=asc&page=";
+        for ($i=1; $i<=18; $i++){
+
+            $response = $this->client->get($url.$i); // URL, where you want to fetch the content
+            // get content and pass to the crawler
+            $content = $response->getBody()->getContents();
+            $crawler = new Crawler( $content );
+            
+            $_this = $this;
+            
+            $data = $crawler->filter('div.product_item')
+                            ->each(function (Crawler $node, $i) use($_this) {
+                                return $node->filter('a.product_link_img')->attr('href');
+                                
+                            }
+                        );
+                        //return $data;
+
+                        foreach($data as $row){
+                            $link = new Link();
+                            $link->link= "https://xn--e1akkch1aa2a.xn--p1ai".$row;
                             $link->save();
                         }
                         
@@ -351,6 +382,8 @@ class CrawlerController extends Controller
                     }
     }
 
+    
+
     function getBetween($string, $start = "", $end = ""){
         if (strpos($string, $start)) { // required if $start not exist in $string
             $startCharCount = strpos($string, $start) + strlen($start);
@@ -586,7 +619,7 @@ class CrawlerController extends Controller
     public function exportCsv(Request $request)
     {
             $fileName = 'tasks.csv';
-            $products = MilanoProduct::get();
+            $products = OrekhvillProduct::get();
             //return $products;
             
             $headers = array(
@@ -598,22 +631,26 @@ class CrawlerController extends Controller
             );
 
             //$columns = array('Title', 'Assign', 'Description', 'Start Date', 'Due Date');
-            $columns = array("Тип","Артикул","Имя","Опубликован","рекомендуемый?","Видимость в каталоге","Краткое описание","Описание","Дата начала действия продажной цены","Дата окончания действия продажной цены","Статус налога","Налоговый класс","В наличии?","Запасы","Величина малых запасов","Возможен ли предзаказ?","Продано индивидуально?","Вес (kg)","Длина (cm)","Ширина (cm)","Высота (cm)","Разрешить отзывы от клиентов?","Примечание к покупке","Цена распродажи","Базовая цена","Категории","Метки","Класс доставки","Изображения","Лимит загрузок","Число дней до просроченной загрузки","Родительский","Сгруппированные товары","Апсейл","Кросселы","Внешний URL","Текст кнопки","Позиция","Имя атрибута 1","Значение(-я) аттрибута(-ов) 1","Видимость атрибута 1","Глобальный атрибут 1","Имя атрибута 2","Значение(-я) аттрибута(-ов) 2","Видимость атрибута 2","Глобальный атрибут 2");
+            $columns = array("ID","Тип","Артикул","Имя","Опубликован","рекомендуемый?","Видимость в каталоге","Краткое описание","Описание","Дата начала действия продажной цены","Дата окончания действия продажной цены","Статус налога","Налоговый класс","В наличии?","Запасы","Величина малых запасов","Возможен ли предзаказ?","Продано индивидуально?","Вес (kg)","Длина (cm)","Ширина (cm)","Высота (cm)","Разрешить отзывы от клиентов?","Примечание к покупке","Цена распродажи","Базовая цена","Категории","Метки","Класс доставки","Изображения","Лимит загрузок","Число дней до просроченной загрузки","Родительский","Сгруппированные товары","Апсейл","Кросселы","Внешний URL","Текст кнопки","Позиция","Имя атрибута 1","Значение(-я) аттрибута(-ов) 1","Видимость атрибута 1","Глобальный атрибут 1","Имя атрибута 2","Значение(-я) аттрибута(-ов) 2","Видимость атрибута 2","Глобальный атрибут 2");
             
             $callback = function() use($products, $columns) {
                 $file = fopen('php://output', 'w');
                 fputcsv($file, $columns);
-
+                $i = 9200;
+                $l=0;
                 foreach ($products as $product) {
-
+                     $i = $i+1;       
                     //return json_decode($product->images);
-                    $row['Тип']  = "simple";
-                    $row['Артикул']  = 'AISA_'.Str::slug($product->model, '_');
+                    $row['ID']  = $i;
+                    $row['Тип']  = "variable";
+                    
+                   // $row['Артикул']  = 'AISA_'.$product->id.'_'.Str::slug($product->model, '_');
+                    $row['Артикул']  = "";
                     $row['Имя']  = $product->name;
                     $row['Опубликован']  = 1;
                     $row['рекомендуемый?']    = 0;
                     $row['Видимость в каталоге']    = 'visible';
-                    $row['Краткое описание']  = $product->name . ' '. $product->color_name;
+                    $row['Краткое описание']  = $product->name;
                     $row['Описание']  = $product->description;
                     $row['Дата начала действия продажной цены']  = "";
                     $row['Дата окончания действия продажной цены']  = "";
@@ -636,12 +673,14 @@ class CrawlerController extends Controller
                     $row['Метки']  = "";
                     $row['Класс доставки']  = "";
                     $images="";
-                    if (count($product->img)>0){
-                        foreach($product->img as $image){        
-                                            
-                            $images  = $images . "https://milano-collection.com/wp-content/uploads/2022/new/".$this->getNum($product->id).$image.', ';
+                    if (count($product->pictures)>0){
+                        foreach($product->pictures as $image){       
+                                           
+                            $images  = $images . "https://xn--e1akkch1aa2a.xn--p1ai".$image.', ';
                         } 
                     }
+
+                   
                                        
                     $row['Изображения']  = substr($images, 0, -2);
                     $row['Лимит загрузок']  = "";
@@ -653,8 +692,20 @@ class CrawlerController extends Controller
                     $row['Внешний URL']  = "";
                     $row['Текст кнопки']  = "";
                     $row['Позиция']  = 0;
-                    $row['Имя атрибута 1']  = "Цвет";
-                    $row['Значение(-я) аттрибута(-ов) 1']  = 0; //"Бежевый, Белый, Голубой, Желтый, Зеленый, Коричневый, Красный, Оранжевый, Розовый, Салатовый, Серий, Фиолетовый, Черный";
+                    $row['Имя атрибута 1']  = "Вес";
+                    //$row['Значение(-я) аттрибута(-ов) 1']  = 0; //"Бежевый, Белый, Голубой, Желтый, Зеленый, Коричневый, Красный, Оранжевый, Розовый, Салатовый, Серий, Фиолетовый, Черный";
+                    $atr ="";
+                    if (count($product->attributes, COUNT_RECURSIVE) > 2){
+                        foreach($product->attributes as $t){                                           
+                            $atr  = $atr.$t[0].', ';
+                        } 
+                        $row['Значение(-я) аттрибута(-ов) 1']  = substr($atr, 0, -2);
+                    }
+                    else {
+                        $row['Значение(-я) аттрибута(-ов) 1']  = $product->attributes[0];
+                    }
+                    
+
                     $row['Видимость атрибута 1']  = 1;
                     $row['Глобальный атрибут 1']  = 1;
                     $row['Имя атрибута 2']  = "";
@@ -662,7 +713,133 @@ class CrawlerController extends Controller
                     $row['Видимость атрибута 2']  = "";
                     $row['Глобальный атрибут 2']  = "";
 
-                    fputcsv($file, array( $row['Тип'], $row['Артикул'] , $row['Имя'],  $row['Опубликован'], $row['рекомендуемый?'], $row['Видимость в каталоге'], $row['Краткое описание'], $row['Описание'],  $row['Дата начала действия продажной цены'], $row['Дата окончания действия продажной цены'], $row['Статус налога'], $row['Налоговый класс'],  $row['В наличии?'], $row['Запасы'], $row['Величина малых запасов'], $row['Возможен ли предзаказ?'], $row['Продано индивидуально?'],  $row['Вес (kg)'],  $row['Длина (cm)'], $row['Ширина (cm)'], $row['Высота (cm)'], $row['Разрешить отзывы от клиентов?'], $row['Примечание к покупке'], $row['Цена распродажи'], $row['Базовая цена'], $row['Категории'], $row['Метки'], $row['Класс доставки'],  $row['Изображения'], $row['Лимит загрузок'], $row['Число дней до просроченной загрузки'], $row['Родительский'], $row['Сгруппированные товары'], $row['Апсейл'], $row['Кросселы'], $row['Внешний URL'], $row['Текст кнопки'], $row['Позиция'], $row['Имя атрибута 1'], $row['Значение(-я) аттрибута(-ов) 1'], $row['Видимость атрибута 1'], $row['Глобальный атрибут 1'], $row['Имя атрибута 2'], $row['Значение(-я) аттрибута(-ов) 2'], $row['Видимость атрибута 2'], $row['Глобальный атрибут 2']));
+                    fputcsv($file, array(  $row['ID'], $row['Тип'], $row['Артикул'] , $row['Имя'],  $row['Опубликован'], $row['рекомендуемый?'], $row['Видимость в каталоге'], $row['Краткое описание'], $row['Описание'],  $row['Дата начала действия продажной цены'], $row['Дата окончания действия продажной цены'], $row['Статус налога'], $row['Налоговый класс'],  $row['В наличии?'], $row['Запасы'], $row['Величина малых запасов'], $row['Возможен ли предзаказ?'], $row['Продано индивидуально?'],  $row['Вес (kg)'],  $row['Длина (cm)'], $row['Ширина (cm)'], $row['Высота (cm)'], $row['Разрешить отзывы от клиентов?'], $row['Примечание к покупке'], $row['Цена распродажи'], $row['Базовая цена'], $row['Категории'], $row['Метки'], $row['Класс доставки'],  $row['Изображения'], $row['Лимит загрузок'], $row['Число дней до просроченной загрузки'], $row['Родительский'], $row['Сгруппированные товары'], $row['Апсейл'], $row['Кросселы'], $row['Внешний URL'], $row['Текст кнопки'], $row['Позиция'], $row['Имя атрибута 1'], $row['Значение(-я) аттрибута(-ов) 1'], $row['Видимость атрибута 1'], $row['Глобальный атрибут 1'], $row['Имя атрибута 2'], $row['Значение(-я) аттрибута(-ов) 2'], $row['Видимость атрибута 2'], $row['Глобальный атрибут 2']));
+                
+
+                    if (count($product->attributes, COUNT_RECURSIVE) === 2){
+                        $parent_id = $i;
+                        
+                       // foreach ($product->attributes as $attribute) { 
+
+                           // return $attribute;
+                            $i = $i+1;
+                        $row2['ID']  = $i;
+                        $row2['Тип']  = "variation";
+                       // $row['Артикул']  = 'AISA_'.$product->id.'_'.Str::slug($product->model, '_');
+                        $row2['Артикул']  = "";
+                        $row2['Имя']  = $product->name.' - '.$product->attributes[0] ;
+                        $row2['Опубликован']  = 1;
+                        $row2['рекомендуемый?']    = 0;
+                        $row2['Видимость в каталоге']    = 'visible';
+                        $row2['Краткое описание']  = "";
+                        $row2['Описание']  ="";
+                        $row2['Дата начала действия продажной цены']  = "";
+                        $row2['Дата окончания действия продажной цены']  = "";
+                        $row2['Статус налога']  = "taxable";
+                        $row2['Налоговый класс']  = "parent";
+                        $row2['В наличии?']  = 1;
+                        $row2['Запасы']  = "";
+                        $row2['Величина малых запасов']  = "";
+                        $row2['Возможен ли предзаказ?']  = 0;
+                        $row2['Продано индивидуально?']  = 0;
+                        $row2['Вес (kg)']  = "";
+                        $row2['Длина (cm)']  = "";
+                        $row2['Ширина (cm)']  = "";
+                        $row2['Высота (cm)']  = "";
+                        $row2['Разрешить отзывы от клиентов?']  = 0;
+                        $row2['Примечание к покупке']  = "";
+                        $row2['Цена распродажи']  = "";
+                        $row2['Базовая цена']  = $product->attributes[1];
+                        $row2['Категории']  = "";
+                        $row2['Метки']  = "";
+                        $row2['Класс доставки']  = "";                     
+                       
+                                           
+                        $row2['Изображения']  = "";
+                        $row2['Лимит загрузок']  = "";
+                        $row2['Число дней до просроченной загрузки']  = "";                   
+                        $row2['Родительский']  = "id:".$parent_id;                    
+                        $row2['Сгруппированные товары']  = "";                    
+                        $row2['Апсейл']  = "";
+                        $row2['Кросселы']  = "";
+                        $row2['Внешний URL']  = "";
+                        $row2['Текст кнопки']  = "";
+                        $row2['Позиция']  = 0;
+                        $row2['Имя атрибута 1']  = "Вес";
+                        //$row['Значение(-я) аттрибута(-ов) 1']  = 0; //"Бежевый, Белый, Голубой, Желтый, Зеленый, Коричневый, Красный, Оранжевый, Розовый, Салатовый, Серий, Фиолетовый, Черный";
+                        
+                        $row2['Значение(-я) аттрибута(-ов) 1']  = $product->attributes[0];    
+                        $row2['Видимость атрибута 1']  = "";
+                        $row2['Глобальный атрибут 1']  = "";
+
+
+                        fputcsv($file, array($row2['ID'], $row2['Тип'], $row2['Артикул'] , $row2['Имя'],  $row2['Опубликован'], $row2['рекомендуемый?'], $row2['Видимость в каталоге'], $row2['Краткое описание'], $row2['Описание'],  $row2['Дата начала действия продажной цены'], $row2['Дата окончания действия продажной цены'], $row2['Статус налога'], $row2['Налоговый класс'],  $row2['В наличии?'], $row2['Запасы'], $row2['Величина малых запасов'], $row2['Возможен ли предзаказ?'], $row2['Продано индивидуально?'],  $row2['Вес (kg)'],  $row2['Длина (cm)'], $row2['Ширина (cm)'], $row2['Высота (cm)'], $row2['Разрешить отзывы от клиентов?'], $row2['Примечание к покупке'], $row2['Цена распродажи'], $row2['Базовая цена'], $row2['Категории'], $row2['Метки'], $row2['Класс доставки'],  $row2['Изображения'], $row2['Лимит загрузок'], $row2['Число дней до просроченной загрузки'], $row2['Родительский'], $row2['Сгруппированные товары'], $row2['Апсейл'], $row2['Кросселы'], $row2['Внешний URL'], $row2['Текст кнопки'], $row2['Позиция'], $row2['Имя атрибута 1'], $row2['Значение(-я) аттрибута(-ов) 1'], $row2['Видимость атрибута 1'], $row2['Глобальный атрибут 1']));
+                    } else {
+                        $parent_id = $i;
+                        
+                        foreach ($product->attributes as $attribute) { 
+
+                           // return $attribute;
+                            $i = $i+1;
+                        $row2['ID']  = $i;
+                        $row2['Тип']  = "variation";
+                       // $row['Артикул']  = 'AISA_'.$product->id.'_'.Str::slug($product->model, '_');
+                        $row2['Артикул']  = "";
+                        $row2['Имя']  = $product->name.' - '.$attribute[0] ;
+                        $row2['Опубликован']  = 1;
+                        $row2['рекомендуемый?']    = 0;
+                        $row2['Видимость в каталоге']    = 'visible';
+                        $row2['Краткое описание']  = $product->name;
+                        $row2['Описание']  ="";
+                        $row2['Дата начала действия продажной цены']  = "";
+                        $row2['Дата окончания действия продажной цены']  = "";
+                        $row2['Статус налога']  = "taxable";
+                        $row2['Налоговый класс']  = "parent";
+                        $row2['В наличии?']  = 1;
+                        $row2['Запасы']  = "";
+                        $row2['Величина малых запасов']  = "";
+                        $row2['Возможен ли предзаказ?']  = 0;
+                        $row2['Продано индивидуально?']  = 0;
+                        $row2['Вес (kg)']  = "";
+                        $row2['Длина (cm)']  = "";
+                        $row2['Ширина (cm)']  = "";
+                        $row2['Высота (cm)']  = "";
+                        $row2['Разрешить отзывы от клиентов?']  = 0;
+                        $row2['Примечание к покупке']  = "";
+                        $row2['Цена распродажи']  = "";
+                        $row2['Базовая цена']  = $attribute[1];
+                        $row2['Категории']  = "";
+                        $row2['Метки']  = "";
+                        $row2['Класс доставки']  = "";                     
+                       
+                                           
+                        $row2['Изображения']  = "";
+                        $row2['Лимит загрузок']  = "";
+                        $row2['Число дней до просроченной загрузки']  = "";                   
+                        $row2['Родительский']  = "id:".$parent_id;                    
+                        $row2['Сгруппированные товары']  = "";                    
+                        $row2['Апсейл']  = "";
+                        $row2['Кросселы']  = "";
+                        $row2['Внешний URL']  = "";
+                        $row2['Текст кнопки']  = "";
+                        $row2['Позиция']  = $l;
+                        $row2['Имя атрибута 1']  = "Вес";
+                        //$row['Значение(-я) аттрибута(-ов) 1']  = 0; //"Бежевый, Белый, Голубой, Желтый, Зеленый, Коричневый, Красный, Оранжевый, Розовый, Салатовый, Серий, Фиолетовый, Черный";
+                        
+                        $row2['Значение(-я) аттрибута(-ов) 1']  = $attribute[0];    
+                        $row2['Видимость атрибута 1']  = "";
+                        $row2['Глобальный атрибут 1']  = "";
+                        $l++;        
+
+                        fputcsv($file, array($row2['ID'], $row2['Тип'], $row2['Артикул'] , $row2['Имя'],  $row2['Опубликован'], $row2['рекомендуемый?'], $row2['Видимость в каталоге'], $row2['Краткое описание'], $row2['Описание'],  $row2['Дата начала действия продажной цены'], $row2['Дата окончания действия продажной цены'], $row2['Статус налога'], $row2['Налоговый класс'],  $row2['В наличии?'], $row2['Запасы'], $row2['Величина малых запасов'], $row2['Возможен ли предзаказ?'], $row2['Продано индивидуально?'],  $row2['Вес (kg)'],  $row2['Длина (cm)'], $row2['Ширина (cm)'], $row2['Высота (cm)'], $row2['Разрешить отзывы от клиентов?'], $row2['Примечание к покупке'], $row2['Цена распродажи'], $row2['Базовая цена'], $row2['Категории'], $row2['Метки'], $row2['Класс доставки'],  $row2['Изображения'], $row2['Лимит загрузок'], $row2['Число дней до просроченной загрузки'], $row2['Родительский'], $row2['Сгруппированные товары'], $row2['Апсейл'], $row2['Кросселы'], $row2['Внешний URL'], $row2['Текст кнопки'], $row2['Позиция'], $row2['Имя атрибута 1'], $row2['Значение(-я) аттрибута(-ов) 1'], $row2['Видимость атрибута 1'], $row2['Глобальный атрибут 1']));
+                    }
+                    $l=0;
+
+
+
+
+                    }
+
                 }
 
                 fclose($file);
@@ -955,7 +1132,7 @@ class CrawlerController extends Controller
 
 
     public function parseTradein(){
-        $links = Link::groupBy('link')->where('id', '>', 1873)->get();
+        $links = Link::groupBy('link')->where('id', '>', 3167)->get();
        //return count($links);
         foreach($links as $link){
 
@@ -1040,5 +1217,71 @@ public function movePic(){
     }
     }
 }
+
+
+public function orekhvill_products(){
+         $links = Link::where('id', '>', 0)->get();
+         foreach($links as $link){       
+         
+
+         $response = $this->client->get($link->link); // URL, where you want to fetch the content
+         // get content and pass to the crawler
+         $content = $response->getBody()->getContents();
+         $crawler = new Crawler( $content );         
+         $_this = $this;
+
+         $name = $crawler->filter('h1.title_product')->text();         
+         $category = $crawler->filter('div.breadcrumbs a')->eq(1)->text();
+         //$mark = $crawler->filter('li.product-manufacturer a')->text();
+        // $model = $crawler->filter('li.product-model span')->text();
+        // $price_usd = substr($crawler->filter('div.product-price')->text(), 1) ?? null;
+         //$price = ($price_usd + 1) *75;
+        // $feature = $crawler->filter('div.table-responsive')->outerHtml();
+
+        try {
+            $desc = $crawler->filter('div.product_text p')->text();
+        }
+        catch (\InvalidArgumentException $e) {
+            $desc  = null;
+        }
+        
+        
+ 
+        
+        $test = $crawler->filter('div.product_right .pr_6 span.select_input .si_drop_down_list')->count();
+        //return $test;
+
+        //$disabled[] = $crawler->filter('div.product_right .si_drop_down_list')->count();
+
+      
+        
+
+        //return  response()->json($disabled);
+
+        if ($test<=0){
+            $data = array($crawler->filter('span.si_value')->text(), $crawler->filter('div.block_price .price')->text());
+        }
+        else {
+            $data = $crawler->filter('div.product_right span.si_drop_down_list')->eq(0)->filter('span.ddl_item')
+            ->each(function (Crawler $node, $i) use($_this) {
+                return array($node->text(), $node->filter('span.ddl_item')->attr('data-price'));                             
+            });
+        }
+            //return $data;
+        
+                    $images = $crawler->filter('a.thumb_item')
+                         ->each(function (Crawler $node, $i) use($_this) {
+                             return $node->attr('href');                             
+                         }
+                        );
+                    $product = new OrekhvillProduct();
+                    $product->name = $name;
+                    $product->description = $desc;
+                    $product->pictures = $images;
+                    $product->attributes = $data;
+                    $product->category =  $category;
+                    $product->save();
+                 }
+ }
 
 }
