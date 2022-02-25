@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class Link extends Model
 {
     use HasFactory;
-    protected $table = 'orekhvill_links';
+    protected $table = 'uno_links';
     protected $casts = [
         'pictures'   => 'json'
     ];

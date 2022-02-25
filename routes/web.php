@@ -2,6 +2,8 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\CrawlerController;
+use App\Http\Controllers\UnoTechnoController;
+use Intervention\Image\Facades\Image;
 
 
 /*
@@ -36,3 +38,45 @@ Route::get('/move-pic', [CrawlerController::class, 'movePic']);
 
 Route::get('/orekhvill-links', [CrawlerController::class, 'orekhvill']); 
 Route::get('/orekhvill-products', [CrawlerController::class, 'orekhvill_products']);
+
+//uno
+Route::get('/uno-links', [UnoTechnoController::class, 'parse_links']); 
+Route::get('/uno-products', [UnoTechnoController::class, 'uno_products']);
+Route::get('/uno-list', [UnoTechnoController::class, 'list']);
+
+
+Route::get('addWatermark', function()
+{
+    
+    $img_bg = Image::make(public_path('logo-orekhvill.jpg'));
+    $img_mini = Image::make(public_path('middle.jpg'));
+    //$img_bg->colorize(0, 30, 0);
+   
+    /* insert watermark at bottom-right corner with 10px offset */
+    
+    ///$files = Storage::disk('public')->files($directory);
+   
+   //$img->save(public_path('03/11b0.jpg')); 
+   //$img->save(storage_path('app/02/11b0.jpg'));
+   
+   $dir = public_path('02');
+   $result = [];
+  
+     $files = File::files($dir);
+     foreach($files as $f){
+        $img = Image::make(public_path('02/'.$f->getRelativePathname()));
+        $height = $img->height();
+        if ($height>=300 && $height<=430){
+            $img->insert($img_mini, 'bottom-right', 0, 0);
+            $img->save(public_path('03/'. $f->getRelativePathname()));   
+        }
+        /*
+        else {
+            $img->insert($img_bg, 'bottom-right', 0, 0);
+        }
+        */
+        
+           
+     }
+});
+
