@@ -46,7 +46,12 @@ Route::get('/rolf', [CrawlerController::class, 'rolf2']);
 //uno
 Route::get('/uno-links', [UnoTechnoController::class, 'parse_links']);
 Route::get('/uno-products', [UnoTechnoController::class, 'uno_products']);
-Route::get('/uno-list', [UnoTechnoController::class, 'list']);
+Route::get('/uno-list', [UnoTechnoController::class, 'list']);//uno
+
+
+Route::get('/quke-links', [UnoTechnoController::class, 'quke_links']);
+Route::get('/quke-products', [UnoTechnoController::class, 'quke_products']);
+Route::get('/quke-list', [UnoTechnoController::class, 'quke_list']);
 
 
 Route::get('/urban', [UrbanController::class, 'index']);
