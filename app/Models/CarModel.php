@@ -5,10 +5,10 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Link extends Model
+class CarModel extends Model
 {
     use HasFactory;
-    protected $table = 'automir_links';
+    protected $table = 'automir_models';
     protected $casts = [
         'pictures'   => 'json'
     ];

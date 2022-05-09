@@ -5,11 +5,10 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Link extends Model
+
+class EboardDb extends Model
 {
     use HasFactory;
-    protected $table = 'automir_links';
-    protected $casts = [
-        'pictures'   => 'json'
-    ];
+    protected $table = 'eboard_db';
+    public $timestamps = false;
 }

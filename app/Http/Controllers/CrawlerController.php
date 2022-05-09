@@ -12,6 +12,7 @@ use App\Models\Product;
 use App\Models\Attachment;
 use App\Models\MilanoProduct;
 use App\Models\OrekhvillProduct;
+use App\Models\RolfProduct;
 use League\Flysystem\Adapter\Local;
 use League\Flysystem\Filesystem;
 use Illuminate\Support\Facades\Storage;
@@ -42,13 +43,13 @@ class CrawlerController extends Controller
             // get content and pass to the crawler
             $content = $response->getBody()->getContents();
             $crawler = new Crawler( $content );
-            
+
             $_this = $this;
-            
+
             $data = $crawler->filter('ul.productList li')
                             ->each(function (Crawler $node, $i) use($_this) {
                                 return $node->filter('li.card_one a')->attr('href');
-                                
+
                             }
                         );
 
@@ -57,7 +58,7 @@ class CrawlerController extends Controller
                             $link->link= "https://positronica.ru".$row;
                             $link->save();
                         }
-                        
+
 
 
 
@@ -71,13 +72,13 @@ class CrawlerController extends Controller
             // get content and pass to the crawler
             $content = $response->getBody()->getContents();
             $crawler = new Crawler( $content );
-            
+
             $_this = $this;
-            
+
             $data = $crawler->filter('div.product_item')
                             ->each(function (Crawler $node, $i) use($_this) {
                                 return $node->filter('a.product_link_img')->attr('href');
-                                
+
                             }
                         );
                         //return $data;
@@ -87,7 +88,7 @@ class CrawlerController extends Controller
                             $link->link= "https://xn--e1akkch1aa2a.xn--p1ai".$row;
                             $link->save();
                         }
-                        
+
 
 
 
@@ -107,7 +108,7 @@ class CrawlerController extends Controller
             $data = $crawler->filter('div.carousel-inner a')
                             ->each(function (Crawler $node, $i) use($_this) {
                                 return $node->filter('img')->attr('data-src');
-                                
+
                             }
                         );
 
@@ -116,7 +117,7 @@ class CrawlerController extends Controller
 
 
                         $urls = [];
-                        
+
                        foreach ($data as $media) {
                             //$res = $this->storeImage($media, 'tempFolder');
                             //$tempFile = public_path($res);
@@ -126,25 +127,25 @@ class CrawlerController extends Controller
                           //  $attachment->addMultipleMediaFromRequest($data)->each(function ($fileAdder) {
                             //    $fileAdder->toMediaCollection()
                            // });
-                            
+
                            foreach ($attachment->getMedia() as $image) {
                             $converted_url = [
                                'thumbnail' => $image->getUrl('thumbnail'),
                                'original' => $image->getUrl(),
                                'id' => $attachment->id
                            ];
-                           
+
                        }
                        $urls[] = $converted_url;
-                           
+
 
                         }
-                        
+
                         //return $urls;
-                        
-            
-            
-        
+
+
+
+
            // return $urls;
 
             $product = new Product();
@@ -152,14 +153,14 @@ class CrawlerController extends Controller
             $product->meta_title = "Отзывы и рейтинг по отзывам на ".$crawler->filter('div.main-head h1')->text();
             $product->meta_description = "Обзор всех отзывов и рейтинг по отзывам среди Интернет-магазинов на ".$crawler->filter('div.main-head h1')->text(). ' Отзывы на телевизоры- Рейтинг - Топ товаров - Электроника - Каталог - Цены - Обзор - Где купить';
             $product->name = $crawler->filter('div.main-head h1')->text();
-            $product->slug = Str::slug($crawler->filter('div.main-head h1')->text());            
+            $product->slug = Str::slug($crawler->filter('div.main-head h1')->text());
             $product->price = $crawler->filter('div.price-item')->text();
             $product->sale_price = $crawler->filter('div.price-item')->text();
             $product->description = $crawler->filter('table.table-hover')->outerHtml();
 
             $product->brand_id = 1;
             if (count($urls)> 0) {
-                $product->image = json_encode($urls[0]);           
+                $product->image = json_encode($urls[0]);
                 $product->gallery = json_encode($urls);
             }
             //$product->image = $urls[0];
@@ -181,20 +182,20 @@ class CrawlerController extends Controller
     public static function storeImage($remote, $desDir)
     {
         $adapter = new Local($desDir);
- 
+
         $filesystem = new Filesystem($adapter);
- 
+
         $pathInfo = pathinfo($remote);
- 
+
         $stream = fopen($remote, 'r');
- 
+
         if ($filesystem->putStream($pathInfo['basename'], $stream)) {
- 
+
             fclose($stream);
- 
+
             return trim($desDir) . DIRECTORY_SEPARATOR . $pathInfo['basename'];
         }
- 
+
         return null;
     }
 
@@ -223,29 +224,29 @@ class CrawlerController extends Controller
             else {
                 $response = $this->client->get($ur1[0]); // URL, where you want to fetch the content
             }
-            
+
             // get content and pass to the crawler
             $content = $response->getBody()->getContents();
             $crawler = new Crawler( $content );
-            
+
             $_this = $this;
-            
+
             $data = $crawler->filter('div.product-thumb')
                             ->each(function (Crawler $node, $i) use($_this) {
                                 return $node->filter('div.image a')->attr('href');
-                                
+
                             }
-                        );                      
+                        );
 
                         foreach($data as $row){
-                            $category = $this->getBetween($row, 'ru/', '/');                           
+                            $category = $this->getBetween($row, 'ru/', '/');
                             $link = new Link();
                             $link->link= $row;
                             $link->category= $this->my_mb_ucfirst($category);
                             $link->category_id= $key+1;
                             $link->save();
                         }
-                        
+
 
 
 
@@ -259,14 +260,14 @@ class CrawlerController extends Controller
             $links = Link::get();
             foreach($links as $link){
 
-            
-            
+
+
 
             $response = $this->client->get($link->link); // URL, where you want to fetch the content
             // get content and pass to the crawler
             $content = $response->getBody()->getContents();
             $crawler = new Crawler( $content );
-            
+
             $_this = $this;
 
             $name = $crawler->filter('div.page-title')->text();
@@ -275,27 +276,27 @@ class CrawlerController extends Controller
             $price_usd = substr($crawler->filter('div.product-price')->text(), 1) ?? null;
             $price = ($price_usd + 1) *75;
             $feature = $crawler->filter('div.table-responsive')->outerHtml();
-            
 
-           
-            
+
+
+
             $data = $crawler->filter('ul.prodvar li')
                             ->each(function (Crawler $node, $i) use($_this) {
                                 return $node->filter('a')->attr('href');
-                                
+
                             }
-                        );    
-                        
+                        );
+
                         $images = $crawler->filter('div.main-image .swiper-slide')
                             ->each(function (Crawler $node, $i) use($_this) {
                                 return $node->filter('img')->attr('src');
-                                
+
                             }
                         );
 
                         $pictures=[];
 
-                        
+
 
                        foreach($images as $key => $image){
                        // sleep(5);
@@ -313,16 +314,16 @@ class CrawlerController extends Controller
                        $product->price = $price;
                        $product->description = $feature;
                        $product->pictures = $pictures;
-                       $product->link =  $link->link;                       
+                       $product->link =  $link->link;
                        $product->category_id =  $link->category_id;
                        $product->category =  $link->category;
                        $product->save();
                        $parent_id = $product->id;
                       // dd($product); die();
-                        
-                        
-                        
-                        
+
+
+
+
 
                         foreach($data as $key => $row){
                             //sleep(80);
@@ -330,8 +331,8 @@ class CrawlerController extends Controller
                             // get content and pass to the crawler
                             $content2 = $response2->getBody()->getContents();
                             $crawler2 = new Crawler( $content2 );
-            
-           
+
+
 
                             $name = $crawler2->filter('div.page-title')->text();
                             $mark = $crawler2->filter('li.product-manufacturer a')->text();
@@ -339,22 +340,22 @@ class CrawlerController extends Controller
                             $price_usd = substr($crawler2->filter('div.product-price')->text(), 1) ?? null;
                             $price = ($price_usd + 1) *75;
                             $feature = $crawler2->filter('div.table-responsive')->outerHtml();
-            
 
-           
-            
-          
-                        
+
+
+
+
+
                         $imgs = $crawler2->filter('div.main-image .swiper-slide')
                             ->each(function (Crawler $node, $i) use($_this) {
                                 return $node->filter('img')->attr('src');
-                                
+
                             }
                         );
 
                         $pics=[];
 
-                        
+
 
                        foreach($imgs as $image){
                         //$filename = $link->id.'_'.$parent_id.'_'.($key+1).'_'.Str::random(5).'_'.basename($image);
@@ -376,13 +377,13 @@ class CrawlerController extends Controller
                        $product2->category =  $link->category;
                        $product2->link =  $row;
                        $product2->save();
-                            
+
                         }
                        // dd($product2);
                     }
     }
 
-    
+
 
     function getBetween($string, $start = "", $end = ""){
         if (strpos($string, $start)) { // required if $start not exist in $string
@@ -410,25 +411,25 @@ class CrawlerController extends Controller
             //$palette = new \BrianMcdo\ImagePalette\ImagePalette($product->pictures[1] ?? $product->pictures[0]);
             //return $palette;
             foreach($product->pictures as $key=>$image){
-                
+
                 //return utf8_encode($image);
                 //return $image;
-                
+
                if (str_starts_with($image, 'https://')){
-                
+
                 try{
                     //$image=urlencode($image);
                     //$filename = $product->id.'_'.($key+1).'_'.Str::random(5).'_'.str_replace(' ', '_', basename($image));
                    // Image::make($image)->save(public_path("new_image/". $filename));
                    $contents = file_get_contents($image);
                     $name = $product->id.'_'.($key+1).'_'.Str::random(5).'_'.str_replace(' ', '_',substr($image, strrpos($image, '/') + 1));
-                    Storage::put($name, $contents); 
+                    Storage::put($name, $contents);
                    $pictures[]=$name;
                 }
                 catch(Exception $e){
                     return $e;
-                }                   
-               
+                }
+
                }
                else continue;
                 }
@@ -459,14 +460,14 @@ class CrawlerController extends Controller
                 $content = $response->getBody()->getContents();
                 $crawler = new Crawler( $content );
 
-                
-                
+
+
                 $_this = $this;
 
                 $images = $crawler->filter('div.main-image .swiper-slide')
                 ->each(function (Crawler $node, $i) use($_this) {
                     return $node->filter('img')->attr('src');
-                    
+
                 }
 
             );
@@ -474,7 +475,7 @@ class CrawlerController extends Controller
 
             $pictures=[];
 
-            
+
 
            foreach($images as $key => $image){
            // sleep(5);
@@ -489,17 +490,17 @@ class CrawlerController extends Controller
                 //$item->color=$palette->color;;
                 $item->save();
             }
-            
-                
+
+
         }
     }
 
     public function setColor(){
         $products = MilanoProduct::where('id','>', 4138)->get();
-        
+
         foreach ($products as $product){
-            
-        
+
+
         try {
             $palette = new \BrianMcdo\ImagePalette\ImagePalette($product->pictures[1] ?? $product->pictures[0]);
             // get the prominent colors
@@ -517,7 +518,7 @@ class CrawlerController extends Controller
                     continue;
             }
 
-            
+
 
         }
 
@@ -526,7 +527,7 @@ class CrawlerController extends Controller
         // echo '<p style="font-size:32px; background-color:'.$color.';">test</p>';
 
     // }
-    }                                   
+    }
 
     function getColor($value){
 
@@ -554,7 +555,7 @@ class CrawlerController extends Controller
         "Темно-синий"      => array(159, 175, 223),
         "Темно-синий"      => array(25, 25, 112),
         "Темно-розовый"      => array(255, 20, 147),
-        "Золотистый"      => array(255, 215, 0),        
+        "Золотистый"      => array(255, 215, 0),
         "Золотистый"    => array(184, 134, 11),
         "Золотистый"    => array(222, 184, 135),
         "Золотистый"    => array(255, 248, 220),
@@ -572,7 +573,7 @@ class CrawlerController extends Controller
     foreach ($colors as $name => $c) {
         $distances[$name] = $this->distancel2($c, $val);
     }
-    
+
     $mincolor = "";
     $minval = pow(2, 30); /*big value*/
     foreach ($distances as $k => $v) {
@@ -581,7 +582,7 @@ class CrawlerController extends Controller
             $mincolor = $k;
         }
     }
-    
+
     return $mincolor;
     }
 
@@ -603,7 +604,7 @@ class CrawlerController extends Controller
             list($r, $g, $b) = array($color[0].$color[0],
                 $color[1].$color[1], $color[2].$color[2]);
         else
-            return false;    
+            return false;
         $r = hexdec($r); $g = hexdec($g); $b = hexdec($b);
 
         return array($r, $g, $b);
@@ -621,7 +622,7 @@ class CrawlerController extends Controller
             $fileName = 'tasks.csv';
             $products = OrekhvillProduct::get();
             //return $products;
-            
+
             $headers = array(
                 "Content-type"        => "text/csv",
                 "Content-Disposition" => "attachment; filename=$fileName",
@@ -632,7 +633,7 @@ class CrawlerController extends Controller
 
             //$columns = array('Title', 'Assign', 'Description', 'Start Date', 'Due Date');
             $columns = array("Тип","SKU","Product Title","Опубликован","рекомендуемый?","Видимость в каталоге","Краткое описание","Описание","Дата начала действия продажной цены","Дата окончания действия продажной цены","Статус налога","Налоговый класс","В наличии?","Запасы","Величина малых запасов","Возможен ли предзаказ?","Продано индивидуально?","Вес (kg)","Длина (cm)","Ширина (cm)","Высота (cm)","Разрешить отзывы от клиентов?","Примечание к покупке","Цена распродажи","Базовая цена","Категории","Метки","Класс доставки","Изображения","Лимит загрузок","Число дней до просроченной загрузки","Родительский","Сгруппированные товары","Апсейл","Кросселы","Внешний URL","Текст кнопки","Позиция","Имя атрибута 1","Значение(-я) аттрибута(-ов) 1","Видимость атрибута 1","Глобальный атрибут 1","Имя атрибута 2","Значение(-я) аттрибута(-ов) 2","Видимость атрибута 2","Глобальный атрибут 2");
-            
+
             $callback = function() use($products, $columns) {
                 $file = fopen('php://output', 'w');
                 fputcsv($file, $columns);
@@ -640,11 +641,11 @@ class CrawlerController extends Controller
                 $l=0;
                 $i=0;
                 foreach ($products as $product) {
-                     $i = $i+1;       
+                     $i = $i+1;
                     //return json_decode($product->images);
                    // $row['ID']  = $i;
                     $row['Тип']  = "variable";
-                    
+
                     $row['SKU']  = 'TOV_'.$product->id;
                     //$row['SKU']  = "TOV_";
                     $row['Имя']  = $product->name;
@@ -670,7 +671,7 @@ class CrawlerController extends Controller
                     $row['Примечание к покупке']  = "";
                     $row['Цена распродажи']  = "";
                     if (count($product->attributes, COUNT_RECURSIVE) > 2){
-                       
+
                         $row['Базовая цена']  = $product->attributes[0][1];
                     }
                     else {
@@ -681,19 +682,19 @@ class CrawlerController extends Controller
                     $row['Класс доставки']  = "";
                     $images="";
                     if (count($product->pictures)>0){
-                        foreach($product->pictures as $image){       
-                                           
+                        foreach($product->pictures as $image){
+
                             $images  = $images . "https://xn--e1akkch1aa2a.xn--p1ai".$image.', ';
-                        } 
+                        }
                     }
 
-                   
-                                       
+
+
                     $row['Изображения']  = substr($images, 0, -2);
                     $row['Лимит загрузок']  = "";
-                    $row['Число дней до просроченной загрузки']  = "";                   
-                    $row['Родительский']  = "";                    
-                    $row['Сгруппированные товары']  = "";                    
+                    $row['Число дней до просроченной загрузки']  = "";
+                    $row['Родительский']  = "";
+                    $row['Сгруппированные товары']  = "";
                     $row['Апсейл']  = "";
                     $row['Кросселы']  = "";
                     $row['Внешний URL']  = "";
@@ -703,15 +704,15 @@ class CrawlerController extends Controller
                     //$row['Значение(-я) аттрибута(-ов) 1']  = 0; //"Бежевый, Белый, Голубой, Желтый, Зеленый, Коричневый, Красный, Оранжевый, Розовый, Салатовый, Серий, Фиолетовый, Черный";
                     $atr ="";
                     if (count($product->attributes, COUNT_RECURSIVE) > 2){
-                        foreach($product->attributes as $t){                                           
+                        foreach($product->attributes as $t){
                             $atr  = $atr.$t[0].', ';
-                        } 
+                        }
                         $row['Значение(-я) аттрибута(-ов) 1']  = substr($atr, 0, -2);
                     }
                     else {
                         $row['Значение(-я) аттрибута(-ов) 1']  = $product->attributes[0];
                     }
-                    
+
 
                     $row['Видимость атрибута 1']  = 1;
                     $row['Глобальный атрибут 1']  = 1;
@@ -721,12 +722,12 @@ class CrawlerController extends Controller
                     $row['Глобальный атрибут 2']  = "";
 
                     fputcsv($file, array(  $row['Тип'], $row['SKU'] , $row['Имя'],  $row['Опубликован'], $row['рекомендуемый?'], $row['Видимость в каталоге'], $row['Краткое описание'], $row['Описание'],  $row['Дата начала действия продажной цены'], $row['Дата окончания действия продажной цены'], $row['Статус налога'], $row['Налоговый класс'],  $row['В наличии?'], $row['Запасы'], $row['Величина малых запасов'], $row['Возможен ли предзаказ?'], $row['Продано индивидуально?'],  $row['Вес (kg)'],  $row['Длина (cm)'], $row['Ширина (cm)'], $row['Высота (cm)'], $row['Разрешить отзывы от клиентов?'], $row['Примечание к покупке'], $row['Цена распродажи'], $row['Базовая цена'], $row['Категории'], $row['Метки'], $row['Класс доставки'],  $row['Изображения'], $row['Лимит загрузок'], $row['Число дней до просроченной загрузки'], $row['Родительский'], $row['Сгруппированные товары'], $row['Апсейл'], $row['Кросселы'], $row['Внешний URL'], $row['Текст кнопки'], $row['Позиция'], $row['Имя атрибута 1'], $row['Значение(-я) аттрибута(-ов) 1'], $row['Видимость атрибута 1'], $row['Глобальный атрибут 1'], $row['Имя атрибута 2'], $row['Значение(-я) аттрибута(-ов) 2'], $row['Видимость атрибута 2'], $row['Глобальный атрибут 2']));
-                
+
 
                     if (count($product->attributes, COUNT_RECURSIVE) === 2){
                         $parent_id = $i;
-                        
-                       // foreach ($product->attributes as $attribute) { 
+
+                       // foreach ($product->attributes as $attribute) {
 
                            // return $attribute;
                             $i = $i+1;
@@ -759,14 +760,14 @@ class CrawlerController extends Controller
                         $row2['Базовая цена']  = $product->attributes[1];
                         $row2['Категории']  = "";
                         $row2['Метки']  = "";
-                        $row2['Класс доставки']  = "";                     
-                       
-                                           
+                        $row2['Класс доставки']  = "";
+
+
                         $row2['Изображения']  = "";
                         $row2['Лимит загрузок']  = "";
-                        $row2['Число дней до просроченной загрузки']  = "";                   
-                        $row2['Родительский']  = 'TOV_'.$product->id;                      
-                        $row2['Сгруппированные товары']  = "";                    
+                        $row2['Число дней до просроченной загрузки']  = "";
+                        $row2['Родительский']  = 'TOV_'.$product->id;
+                        $row2['Сгруппированные товары']  = "";
                         $row2['Апсейл']  = "";
                         $row2['Кросселы']  = "";
                         $row2['Внешний URL']  = "";
@@ -774,8 +775,8 @@ class CrawlerController extends Controller
                         $row2['Позиция']  = 0;
                         $row2['Имя атрибута 1']  = "Вес";
                         //$row['Значение(-я) аттрибута(-ов) 1']  = 0; //"Бежевый, Белый, Голубой, Желтый, Зеленый, Коричневый, Красный, Оранжевый, Розовый, Салатовый, Серий, Фиолетовый, Черный";
-                        
-                        $row2['Значение(-я) аттрибута(-ов) 1']  = $product->attributes[0];    
+
+                        $row2['Значение(-я) аттрибута(-ов) 1']  = $product->attributes[0];
                         $row2['Видимость атрибута 1']  = "";
                         $row2['Глобальный атрибут 1']  = "";
 
@@ -783,8 +784,8 @@ class CrawlerController extends Controller
                         fputcsv($file, array($row2['Тип'], $row2['SKU'] , $row2['Имя'],  $row2['Опубликован'], $row2['рекомендуемый?'], $row2['Видимость в каталоге'], $row2['Краткое описание'], $row2['Описание'],  $row2['Дата начала действия продажной цены'], $row2['Дата окончания действия продажной цены'], $row2['Статус налога'], $row2['Налоговый класс'],  $row2['В наличии?'], $row2['Запасы'], $row2['Величина малых запасов'], $row2['Возможен ли предзаказ?'], $row2['Продано индивидуально?'],  $row2['Вес (kg)'],  $row2['Длина (cm)'], $row2['Ширина (cm)'], $row2['Высота (cm)'], $row2['Разрешить отзывы от клиентов?'], $row2['Примечание к покупке'], $row2['Цена распродажи'], $row2['Базовая цена'], $row2['Категории'], $row2['Метки'], $row2['Класс доставки'],  $row2['Изображения'], $row2['Лимит загрузок'], $row2['Число дней до просроченной загрузки'], $row2['Родительский'], $row2['Сгруппированные товары'], $row2['Апсейл'], $row2['Кросселы'], $row2['Внешний URL'], $row2['Текст кнопки'], $row2['Позиция'], $row2['Имя атрибута 1'], $row2['Значение(-я) аттрибута(-ов) 1'], $row2['Видимость атрибута 1'], $row2['Глобальный атрибут 1']));
                     } else {
                         $parent_id = $i;
-                        
-                        foreach ($product->attributes as $attribute) { 
+
+                        foreach ($product->attributes as $attribute) {
 
                            // return $attribute;
                             $i = $i+1;
@@ -817,14 +818,14 @@ class CrawlerController extends Controller
                         $row2['Базовая цена']  = $attribute[1];
                         $row2['Категории']  = "";
                         $row2['Метки']  = "";
-                        $row2['Класс доставки']  = "";                     
-                       
-                                           
+                        $row2['Класс доставки']  = "";
+
+
                         $row2['Изображения']  = "";
                         $row2['Лимит загрузок']  = "";
-                        $row2['Число дней до просроченной загрузки']  = "";                   
-                        $row2['Родительский']  = 'TOV_'.$product->id;                    
-                        $row2['Сгруппированные товары']  = "";                    
+                        $row2['Число дней до просроченной загрузки']  = "";
+                        $row2['Родительский']  = 'TOV_'.$product->id;
+                        $row2['Сгруппированные товары']  = "";
                         $row2['Апсейл']  = "";
                         $row2['Кросселы']  = "";
                         $row2['Внешний URL']  = "";
@@ -832,11 +833,11 @@ class CrawlerController extends Controller
                         $row2['Позиция']  = $l;
                         $row2['Имя атрибута 1']  = "Вес";
                         //$row['Значение(-я) аттрибута(-ов) 1']  = 0; //"Бежевый, Белый, Голубой, Желтый, Зеленый, Коричневый, Красный, Оранжевый, Розовый, Салатовый, Серий, Фиолетовый, Черный";
-                        
-                        $row2['Значение(-я) аттрибута(-ов) 1']  = $attribute[0];    
+
+                        $row2['Значение(-я) аттрибута(-ов) 1']  = $attribute[0];
                         $row2['Видимость атрибута 1']  = "";
                         $row2['Глобальный атрибут 1']  = "";
-                        $l++;        
+                        $l++;
 
                         fputcsv($file, array($row2['Тип'], $row2['SKU'] , $row2['Имя'],  $row2['Опубликован'], $row2['рекомендуемый?'], $row2['Видимость в каталоге'], $row2['Краткое описание'], $row2['Описание'],  $row2['Дата начала действия продажной цены'], $row2['Дата окончания действия продажной цены'], $row2['Статус налога'], $row2['Налоговый класс'],  $row2['В наличии?'], $row2['Запасы'], $row2['Величина малых запасов'], $row2['Возможен ли предзаказ?'], $row2['Продано индивидуально?'],  $row2['Вес (kg)'],  $row2['Длина (cm)'], $row2['Ширина (cm)'], $row2['Высота (cm)'], $row2['Разрешить отзывы от клиентов?'], $row2['Примечание к покупке'], $row2['Цена распродажи'], $row2['Базовая цена'], $row2['Категории'], $row2['Метки'], $row2['Класс доставки'],  $row2['Изображения'], $row2['Лимит загрузок'], $row2['Число дней до просроченной загрузки'], $row2['Родительский'], $row2['Сгруппированные товары'], $row2['Апсейл'], $row2['Кросселы'], $row2['Внешний URL'], $row2['Текст кнопки'], $row2['Позиция'], $row2['Имя атрибута 1'], $row2['Значение(-я) аттрибута(-ов) 1'], $row2['Видимость атрибута 1'], $row2['Глобальный атрибут 1']));
                     }
@@ -860,7 +861,7 @@ class CrawlerController extends Controller
             $fileName = 'rest.csv';
             $products = OrekhvillProduct::get();
             //return $products;
-            
+
             $headers = array(
                 "Content-type"        => "text/csv",
                 "Content-Disposition" => "attachment; filename=$fileName",
@@ -871,7 +872,7 @@ class CrawlerController extends Controller
 
             //$columns = array('Title', 'Assign', 'Description', 'Start Date', 'Due Date');
             $columns = array("Тип","SKU","Product Title","Опубликован","рекомендуемый?","Видимость в каталоге","Краткое описание","Описание","Дата начала действия продажной цены","Дата окончания действия продажной цены","Статус налога","Налоговый класс","В наличии?","Запасы","Величина малых запасов","Возможен ли предзаказ?","Продано индивидуально?","Вес (kg)","Длина (cm)","Ширина (cm)","Высота (cm)","Разрешить отзывы от клиентов?","Примечание к покупке","Цена распродажи","Базовая цена","Категории","Метки","Класс доставки","Изображения","Лимит загрузок","Число дней до просроченной загрузки","Родительский","Сгруппированные товары","Апсейл","Кросселы","Внешний URL","Текст кнопки","Позиция","Имя атрибута 1","Значение(-я) аттрибута(-ов) 1","Видимость атрибута 1","Глобальный атрибут 1","Имя атрибута 2","Значение(-я) аттрибута(-ов) 2","Видимость атрибута 2","Глобальный атрибут 2");
-            
+
             $callback = function() use($products, $columns) {
                 $file = fopen('php://output', 'w');
                 fputcsv($file, $columns);
@@ -879,11 +880,11 @@ class CrawlerController extends Controller
                 $l=0;
                 $i=0;
                 foreach ($products as $product) {
-                     $i = $i+1;       
+                     $i = $i+1;
                     //return json_decode($product->images);
                    // $row['ID']  = $i;
                     $row['Тип']  = "variable";
-                    
+
                     $row['SKU']  = 'TOV_'.$product->id;
                     //$row['SKU']  = "TOV_";
                     $row['Имя']  = $product->name;
@@ -909,7 +910,7 @@ class CrawlerController extends Controller
                     $row['Примечание к покупке']  = "";
                     $row['Цена распродажи']  = "";
                     if (count($product->attributes, COUNT_RECURSIVE) > 2){
-                       
+
                         $row['Базовая цена']  = $product->attributes[0][1];
                     }
                     else {
@@ -920,19 +921,19 @@ class CrawlerController extends Controller
                     $row['Класс доставки']  = "";
                     $images="";
                     if (count($product->pictures)>0){
-                        foreach($product->pictures as $image){       
-                                           
+                        foreach($product->pictures as $image){
+
                             $images  = $images . "https://xn--e1akkch1aa2a.xn--p1ai".$image.', ';
-                        } 
+                        }
                     }
 
-                   
-                                       
+
+
                     $row['Изображения']  = substr($images, 0, -2);
                     $row['Лимит загрузок']  = "";
-                    $row['Число дней до просроченной загрузки']  = "";                   
-                    $row['Родительский']  = "";                    
-                    $row['Сгруппированные товары']  = "";                    
+                    $row['Число дней до просроченной загрузки']  = "";
+                    $row['Родительский']  = "";
+                    $row['Сгруппированные товары']  = "";
                     $row['Апсейл']  = "";
                     $row['Кросселы']  = "";
                     $row['Внешний URL']  = "";
@@ -942,15 +943,15 @@ class CrawlerController extends Controller
                     //$row['Значение(-я) аттрибута(-ов) 1']  = 0; //"Бежевый, Белый, Голубой, Желтый, Зеленый, Коричневый, Красный, Оранжевый, Розовый, Салатовый, Серий, Фиолетовый, Черный";
                     $atr ="";
                     if (count($product->attributes, COUNT_RECURSIVE) > 2){
-                        foreach($product->attributes as $t){                                           
+                        foreach($product->attributes as $t){
                             $atr  = $atr.$t[0].', ';
-                        } 
+                        }
                         $row['Значение(-я) аттрибута(-ов) 1']  = substr($atr, 0, -2);
                     }
                     else {
                         $row['Значение(-я) аттрибута(-ов) 1']  = $product->attributes[0];
                     }
-                    
+
 
                     $row['Видимость атрибута 1']  = 1;
                     $row['Глобальный атрибут 1']  = 1;
@@ -960,12 +961,12 @@ class CrawlerController extends Controller
                     $row['Глобальный атрибут 2']  = "";
 
                     fputcsv($file, array(  $row['Тип'], $row['SKU'] , $row['Имя'],  $row['Опубликован'], $row['рекомендуемый?'], $row['Видимость в каталоге'], $row['Краткое описание'], $row['Описание'],  $row['Дата начала действия продажной цены'], $row['Дата окончания действия продажной цены'], $row['Статус налога'], $row['Налоговый класс'],  $row['В наличии?'], $row['Запасы'], $row['Величина малых запасов'], $row['Возможен ли предзаказ?'], $row['Продано индивидуально?'],  $row['Вес (kg)'],  $row['Длина (cm)'], $row['Ширина (cm)'], $row['Высота (cm)'], $row['Разрешить отзывы от клиентов?'], $row['Примечание к покупке'], $row['Цена распродажи'], $row['Базовая цена'], $row['Категории'], $row['Метки'], $row['Класс доставки'],  $row['Изображения'], $row['Лимит загрузок'], $row['Число дней до просроченной загрузки'], $row['Родительский'], $row['Сгруппированные товары'], $row['Апсейл'], $row['Кросселы'], $row['Внешний URL'], $row['Текст кнопки'], $row['Позиция'], $row['Имя атрибута 1'], $row['Значение(-я) аттрибута(-ов) 1'], $row['Видимость атрибута 1'], $row['Глобальный атрибут 1'], $row['Имя атрибута 2'], $row['Значение(-я) аттрибута(-ов) 2'], $row['Видимость атрибута 2'], $row['Глобальный атрибут 2']));
-                
+
 
                     if (count($product->attributes, COUNT_RECURSIVE) === 2){
                         $parent_id = $i;
-                        
-                       // foreach ($product->attributes as $attribute) { 
+
+                       // foreach ($product->attributes as $attribute) {
 
                            // return $attribute;
                             $i = $i+1;
@@ -998,14 +999,14 @@ class CrawlerController extends Controller
                         $row2['Базовая цена']  = $product->attributes[1];
                         $row2['Категории']  = "";
                         $row2['Метки']  = "";
-                        $row2['Класс доставки']  = "";                     
-                       
-                                           
+                        $row2['Класс доставки']  = "";
+
+
                         $row2['Изображения']  = "";
                         $row2['Лимит загрузок']  = "";
-                        $row2['Число дней до просроченной загрузки']  = "";                   
-                        $row2['Родительский']  = 'TOV_'.$product->id;                      
-                        $row2['Сгруппированные товары']  = "";                    
+                        $row2['Число дней до просроченной загрузки']  = "";
+                        $row2['Родительский']  = 'TOV_'.$product->id;
+                        $row2['Сгруппированные товары']  = "";
                         $row2['Апсейл']  = "";
                         $row2['Кросселы']  = "";
                         $row2['Внешний URL']  = "";
@@ -1013,8 +1014,8 @@ class CrawlerController extends Controller
                         $row2['Позиция']  = 0;
                         $row2['Имя атрибута 1']  = "Вес";
                         //$row['Значение(-я) аттрибута(-ов) 1']  = 0; //"Бежевый, Белый, Голубой, Желтый, Зеленый, Коричневый, Красный, Оранжевый, Розовый, Салатовый, Серий, Фиолетовый, Черный";
-                        
-                        $row2['Значение(-я) аттрибута(-ов) 1']  = $product->attributes[0];    
+
+                        $row2['Значение(-я) аттрибута(-ов) 1']  = $product->attributes[0];
                         $row2['Видимость атрибута 1']  = "";
                         $row2['Глобальный атрибут 1']  = "";
 
@@ -1022,8 +1023,8 @@ class CrawlerController extends Controller
                         fputcsv($file, array($row2['Тип'], $row2['SKU'] , $row2['Имя'],  $row2['Опубликован'], $row2['рекомендуемый?'], $row2['Видимость в каталоге'], $row2['Краткое описание'], $row2['Описание'],  $row2['Дата начала действия продажной цены'], $row2['Дата окончания действия продажной цены'], $row2['Статус налога'], $row2['Налоговый класс'],  $row2['В наличии?'], $row2['Запасы'], $row2['Величина малых запасов'], $row2['Возможен ли предзаказ?'], $row2['Продано индивидуально?'],  $row2['Вес (kg)'],  $row2['Длина (cm)'], $row2['Ширина (cm)'], $row2['Высота (cm)'], $row2['Разрешить отзывы от клиентов?'], $row2['Примечание к покупке'], $row2['Цена распродажи'], $row2['Базовая цена'], $row2['Категории'], $row2['Метки'], $row2['Класс доставки'],  $row2['Изображения'], $row2['Лимит загрузок'], $row2['Число дней до просроченной загрузки'], $row2['Родительский'], $row2['Сгруппированные товары'], $row2['Апсейл'], $row2['Кросселы'], $row2['Внешний URL'], $row2['Текст кнопки'], $row2['Позиция'], $row2['Имя атрибута 1'], $row2['Значение(-я) аттрибута(-ов) 1'], $row2['Видимость атрибута 1'], $row2['Глобальный атрибут 1']));
                     } else {
                         $parent_id = $i;
-                        
-                        foreach ($product->attributes as $attribute) { 
+
+                        foreach ($product->attributes as $attribute) {
 
                            // return $attribute;
                             $i = $i+1;
@@ -1056,14 +1057,14 @@ class CrawlerController extends Controller
                         $row2['Базовая цена']  = $attribute[1];
                         $row2['Категории']  = "";
                         $row2['Метки']  = "";
-                        $row2['Класс доставки']  = "";                     
-                       
-                                           
+                        $row2['Класс доставки']  = "";
+
+
                         $row2['Изображения']  = "";
                         $row2['Лимит загрузок']  = "";
-                        $row2['Число дней до просроченной загрузки']  = "";                   
-                        $row2['Родительский']  = 'TOV_'.$product->id;                    
-                        $row2['Сгруппированные товары']  = "";                    
+                        $row2['Число дней до просроченной загрузки']  = "";
+                        $row2['Родительский']  = 'TOV_'.$product->id;
+                        $row2['Сгруппированные товары']  = "";
                         $row2['Апсейл']  = "";
                         $row2['Кросселы']  = "";
                         $row2['Внешний URL']  = "";
@@ -1071,11 +1072,11 @@ class CrawlerController extends Controller
                         $row2['Позиция']  = $l;
                         $row2['Имя атрибута 1']  = "Вес";
                         //$row['Значение(-я) аттрибута(-ов) 1']  = 0; //"Бежевый, Белый, Голубой, Желтый, Зеленый, Коричневый, Красный, Оранжевый, Розовый, Салатовый, Серий, Фиолетовый, Черный";
-                        
-                        $row2['Значение(-я) аттрибута(-ов) 1']  = $attribute[0];    
+
+                        $row2['Значение(-я) аттрибута(-ов) 1']  = $attribute[0];
                         $row2['Видимость атрибута 1']  = "";
                         $row2['Глобальный атрибут 1']  = "";
-                        $l++;        
+                        $l++;
 
                         fputcsv($file, array($row2['Тип'], $row2['SKU'] , $row2['Имя'],  $row2['Опубликован'], $row2['рекомендуемый?'], $row2['Видимость в каталоге'], $row2['Краткое описание'], $row2['Описание'],  $row2['Дата начала действия продажной цены'], $row2['Дата окончания действия продажной цены'], $row2['Статус налога'], $row2['Налоговый класс'],  $row2['В наличии?'], $row2['Запасы'], $row2['Величина малых запасов'], $row2['Возможен ли предзаказ?'], $row2['Продано индивидуально?'],  $row2['Вес (kg)'],  $row2['Длина (cm)'], $row2['Ширина (cm)'], $row2['Высота (cm)'], $row2['Разрешить отзывы от клиентов?'], $row2['Примечание к покупке'], $row2['Цена распродажи'], $row2['Базовая цена'], $row2['Категории'], $row2['Метки'], $row2['Класс доставки'],  $row2['Изображения'], $row2['Лимит загрузок'], $row2['Число дней до просроченной загрузки'], $row2['Родительский'], $row2['Сгруппированные товары'], $row2['Апсейл'], $row2['Кросселы'], $row2['Внешний URL'], $row2['Текст кнопки'], $row2['Позиция'], $row2['Имя атрибута 1'], $row2['Значение(-я) аттрибута(-ов) 1'], $row2['Видимость атрибута 1'], $row2['Глобальный атрибут 1']));
                     }
@@ -1100,25 +1101,25 @@ class CrawlerController extends Controller
             }
             if ($id >500 and $id<=1000){
                 return '2/';
-            }            
+            }
             if ($id >1000 and $id<=1500){
                 return '3/';
-            }            
+            }
             if ($id >1500 and $id<=2000){
                 return '5/';
-            }            
+            }
             if ($id >2000 and $id<=2500){
                 return '6/';
             }
-                       
+
             if ($id >2500 and $id<=3000){
                 return '7/';
             }
-                       
+
             if ($id >3000 and $id<=3500){
                 return '8/';
             }
-                       
+
             if ($id >3500 and $id<=6000){
                 return '9/';
             }
@@ -1138,22 +1139,22 @@ class CrawlerController extends Controller
             $turkish = array("ı", "ğ", "ü", "ş", "ö", "ç");//turkish letters
             $english   = array("i", "g", "u", "s", "o", "c");//english cooridinators letters
 
-            
+
             $products = MilanoProduct::whereNotNull('images')->where('id','>', 0)->get();
-            
+
             foreach ($products as $product){
             //dd($product->images);
-             $images=[]; 
+             $images=[];
             foreach ($product->images as $key=>$image){
-                $image_name = str_replace($turkish, $english, $image);           
+                $image_name = str_replace($turkish, $english, $image);
                 $image_name = strtolower(str_replace('%20', '_', $image_name));
                 try{
                     Storage::move('images/'.$image, 'images/'.$this->folderName($product->id).'/'.$image_name);
-                } 
+                }
                 catch(Exception $e){
                     continue;
-                }    
-               
+                }
+
                 $images[]=$image_name;
             }
 
@@ -1163,8 +1164,8 @@ class CrawlerController extends Controller
 
 
 
-                
-            
+
+
         }
         }
 
@@ -1196,7 +1197,7 @@ class CrawlerController extends Controller
         }
 
         public function getProducts(){
-            $products = MilanoProduct::paginate(30); 
+            $products = MilanoProduct::paginate(30);
             return response()->json($products);
         }
 
@@ -1207,18 +1208,18 @@ class CrawlerController extends Controller
                 $product->color_code = $request->color_code;
                 $product->colored = 1;
                 $product->save();
-            } 
+            }
             return response()->json($product);
         }
 
         public function tradein()
     {
         try {
-            $response = $this->client->get('https://www.tradein-bc.ru/Toyota/Corolla/COROLLA-55254/'); 
+            $response = $this->client->get('https://www.tradein-bc.ru/Toyota/Corolla/COROLLA-55254/');
             // get content and pass to the crawler
             $content = $response->getBody()->getContents();
             $crawler = new Crawler($content);
-            
+
             $_this = $this;
             $array = [
                 'title' => $this->hasContent($crawler->filter('h1')) != false ? $crawler->filter('h1')->text() : '',
@@ -1236,17 +1237,17 @@ class CrawlerController extends Controller
             $images = $crawler->filter('div.main-image .swiper-slide')
                             ->each(function (Crawler $node, $i) use($_this) {
                                 return $node->filter('img')->attr('src');
-                                
+
                             }
                         );
 
             $item = new Universal();
-            $item = 
-            
+            $item =
+
             dd($array);
            // header("Content-type: image/gif");
            //echo base64_decode($crawler->filter('div.swiper-slide img'));
-            
+
         } catch ( Exception $e ) {
             echo $e->getMessage();
         }
@@ -1256,8 +1257,6 @@ class CrawlerController extends Controller
 
     public function parse_links()
     {
-        
-
             $urls = array (
                 array('https://www.tradein-bc.ru/Audi/',1, 1),
                 array('https://www.tradein-bc.ru/BMW/',1, 1),
@@ -1318,21 +1317,21 @@ class CrawlerController extends Controller
                 }
             $content = $response->getBody()->getContents();
             $crawler = new Crawler( $content );
-            
+
             $_this = $this;
-            
+
             try {
             $data = $crawler->filter('div.item')
                             ->each(function (Crawler $node, $i) use($_this) {
                                 return $node;
-                                
+
                             }
                         );
 
-                       
-                                 
 
-                        foreach($data as $row){                        
+
+
+                        foreach($data as $row){
                             $link = new Link();
                             if ($row->filter('a img')->attr('src')==='/img/no_image.png'){
                                 continue;
@@ -1354,7 +1353,7 @@ class CrawlerController extends Controller
                  //   'link' => $this->hasContent($crawler->filter('div.fr')) != false ? $crawler->filter('div.fr a')->eq(0)->attr('href') : '',
                  //   'param' => $this->hasContent($crawler->filter('div.param')) != false ? $crawler->filter('div.param')->text() : '',
                  //   'price' => $this->hasContent($crawler->filter('div.price b')) != false ? $crawler->filter('div.price b')->text() : '',
-    
+
                     //'price' => $this->hasContent($crawler->filter('span.pr')) != false ? $crawler->filter('span.pr')->text() : $crawler->filter('div.current-price-container')->eq(0)->attr('content'),
                     //'feature' => $this->hasContent($crawler->filter('table.cartable2')) != false ? $crawler->filter('table.cartable2')->outerHtml() : '',
                    // 'tpad2' => $this->hasContent($crawler->filter('p.tpad2')) != false ? $crawler->filter('p.tpad2')->outerHtml() : '',
@@ -1365,15 +1364,56 @@ class CrawlerController extends Controller
                          $this->hasContent($crawler->filter('a.photo3')) != false ? $crawler->filter('a.photo3')->eq(0)->attr('href') : '',
                     ] */
                 //];
-    
-              
+
+
             }
             //sleep(5);
             }
 
-            
-            
-        
+
+
+
+    }
+
+    public function planeta_links()
+    {
+
+            for ($i=1; $i<=25; $i++){
+            $response = $this->client->get('https://planeta-avto.ru/trade-in?page='.$i);
+            $content = $response->getBody()->getContents();
+            $crawler = new Crawler( $content );
+            $_this = $this;
+
+            //try {
+            $data = $crawler->filter('.model-list-item-container')
+                            ->each(function (Crawler $node, $i) use($_this) {
+                                return $node;
+
+                            }
+                        );
+                        foreach($data as $row){
+                            $link = new Link();
+
+                            $link->link= 'https://planeta-avto.ru/'.$row->filter('a.model-list-item')->attr('href');
+                            //$link->title= $row->filter('.features')->text();
+                            //return $row->filter('a.model-list-item')->attr('href');
+                            //$link->param= $row->filter('div.param')->text();
+                            //$link->price= $row->filter('div.price b')->text();
+                            $link->save();
+                           // return $link;
+                        }
+
+                 //   } catch ( Exception $e ) {
+                 //       // echo $e->getMessage();
+                  //   }
+
+
+
+            }
+
+
+
+
     }
 
 
@@ -1388,11 +1428,11 @@ class CrawlerController extends Controller
             $crawler = new Crawler($content);
             //return intval($crawler->filter('div.price-item')->text());
             $_this = $this;
-            
+
             $data = $crawler->filter('a.photo1')
                             ->each(function (Crawler $node, $i) use($_this) {
                                 return $node->attr('href');
-                                
+
                             }
                         );
 
@@ -1403,7 +1443,7 @@ class CrawlerController extends Controller
 
 
                         $urls = [];
-                        
+
                        foreach ($data as $media) {
 
                         //try{
@@ -1411,17 +1451,17 @@ class CrawlerController extends Controller
                             //$fname = basename($media).PHP_EOL;
                             //file_put_contents(public_path($fname), $image);
                             $name = substr($media, strrpos($media, '/') + 1);
-                            Storage::put('tradein_new/'.$this->getBetween($link->link, 'www.tradein-bc.ru/', '/').'/'.$this->getBetween($data[0], 'catalogauto/', '/').'/'.$name, $image);                           
-                           
+                            Storage::put('tradein_new/'.$this->getBetween($link->link, 'www.tradein-bc.ru/', '/').'/'.$this->getBetween($data[0], 'catalogauto/', '/').'/'.$name, $image);
+
                             $urls[] = $image;
 
                         //} catch ( Exception $e ) {
                         //    echo $e->getMessage();
                        // }
-                           
+
 
                         }
-                        
+
                         //return $urls;
 
             $product = Link::find($link->id);
@@ -1431,20 +1471,21 @@ class CrawlerController extends Controller
             //$product->meta_title = $crawler->filter('title')->text();
             //$product->meta_description = $crawler->filter('description')->text();
            // if (count($urls)> 0) {
-            //    $product->image = $urls[0];           
+            //    $product->image = $urls[0];
                $product->pictures = json_encode($urls);
            // }
            // $product->old_id = $this->getBetween($data[0], 'catalogauto/', '/');
            // $product->mark = $this->getBetween($link, 'www.tradein-bc.ru/', '/');
             $product->save();
             //sleep(3);
-        
-    
+
+
     }
 
 
 
 }
+
 
 
 public function movePic(){
@@ -1454,11 +1495,11 @@ public function movePic(){
     foreach ($product->img as $key=>$image){
         try{
             Storage::move('1/'.$image, 'new/'.$this->getNum($product->id).'/'.$image);
-        } 
+        }
         catch(Exception $e){
             continue;
-        }    
-       
+        }
+
         //$images[]=$image_name;
     }
     }
@@ -1467,16 +1508,16 @@ public function movePic(){
 
 public function orekhvill_products(){
          $links = Link::where('id', '>', 0)->get();
-         foreach($links as $link){       
-         
+         foreach($links as $link){
+
 
          $response = $this->client->get($link->link); // URL, where you want to fetch the content
          // get content and pass to the crawler
          $content = $response->getBody()->getContents();
-         $crawler = new Crawler( $content );         
+         $crawler = new Crawler( $content );
          $_this = $this;
 
-         $name = $crawler->filter('h1.title_product')->text();         
+         $name = $crawler->filter('h1.title_product')->text();
          $category = $crawler->filter('div.breadcrumbs a')->eq(1)->text();
          //$mark = $crawler->filter('li.product-manufacturer a')->text();
         // $model = $crawler->filter('li.product-model span')->text();
@@ -1490,17 +1531,17 @@ public function orekhvill_products(){
         catch (\InvalidArgumentException $e) {
             $desc  = null;
         }
-        
-        
- 
-        
+
+
+
+
         $test = $crawler->filter('div.product_right .pr_6 span.select_input .si_drop_down_list')->count();
         //return $test;
 
         //$disabled[] = $crawler->filter('div.product_right .si_drop_down_list')->count();
 
-      
-        
+
+
 
         //return  response()->json($disabled);
 
@@ -1510,14 +1551,14 @@ public function orekhvill_products(){
         else {
             $data = $crawler->filter('div.product_right span.si_drop_down_list')->eq(0)->filter('span.ddl_item')
             ->each(function (Crawler $node, $i) use($_this) {
-                return array($node->text(), $node->filter('span.ddl_item')->attr('data-price'));                             
+                return array($node->text(), $node->filter('span.ddl_item')->attr('data-price'));
             });
         }
             //return $data;
-        
+
                     $images = $crawler->filter('a.thumb_item')
                          ->each(function (Crawler $node, $i) use($_this) {
-                             return $node->attr('href');                             
+                             return $node->attr('href');
                          }
                         );
                     $product = new OrekhvillProduct();
@@ -1530,6 +1571,246 @@ public function orekhvill_products(){
                  }
  }
 
+ public function rolf2()
+    {
 
- 
+            $url = 'https://rolf-probeg.ru/spb/cars/page/';
+            $pages = array (
+                array("https://rolf-probeg.ru/spb/cars/audi/page/", 2),
+                array("https://rolf-probeg.ru/spb/cars/datsun/page/", 1),
+                array("https://rolf-probeg.ru/spb/cars/hyundai/page/", 4),
+                array("https://rolf-probeg.ru/spb/cars/lexus/page/", 1),
+                array("https://rolf-probeg.ru/spb/cars/opel/page/", 1),
+                array("https://rolf-probeg.ru/spb/cars/toyota/page/", 3),
+                array("https://rolf-probeg.ru/spb/cars/bmw/page/", 3),
+                array("https://rolf-probeg.ru/spb/cars/ford/page/", 3),
+                array("https://rolf-probeg.ru/spb/cars/infiniti/page/", 1),
+                array("https://rolf-probeg.ru/spb/cars/mazda/page/", 1),
+                array("https://rolf-probeg.ru/spb/cars/peugeot/page/", 1),
+                array("https://rolf-probeg.ru/spb/cars/volkswagen/page/", 3),
+                array("https://rolf-probeg.ru/spb/cars/cadillac/page/", 1),
+                array("https://rolf-probeg.ru/spb/cars/geely/page/", 1),
+                array("https://rolf-probeg.ru/spb/cars/jaguar/page/", 1),
+                array("https://rolf-probeg.ru/spb/cars/mercedes/page/", 3),
+                array("https://rolf-probeg.ru/spb/cars/porsche/page/", 1),
+                array("https://rolf-probeg.ru/spb/cars/volvo/page/", 1),
+                array("https://rolf-probeg.ru/spb/cars/chery/page/", 1),
+                array("https://rolf-probeg.ru/spb/cars/genesis/page/", 1),
+                array("https://rolf-probeg.ru/spb/cars/kia/page/", 3),
+                array("https://rolf-probeg.ru/spb/cars/mini/page/", 1),
+                array("https://rolf-probeg.ru/spb/cars/renault/page/", 2),
+                array("https://rolf-probeg.ru/spb/cars/chevrolet/page/", 1),
+                array("https://rolf-probeg.ru/spb/cars/haval/page/", 1),
+                array("https://rolf-probeg.ru/spb/cars/lada--vaz-/page/", 2),
+                array("https://rolf-probeg.ru/spb/cars/mitsubishi/page/", 3),
+                array("https://rolf-probeg.ru/spb/cars/skoda/page/", 5),
+                array("https://rolf-probeg.ru/spb/cars/citroen/page/", 1),
+                array("https://rolf-probeg.ru/spb/cars/honda/page/", 1),
+                array("https://rolf-probeg.ru/spb/cars/land-rover/page/", 1),
+                array("https://rolf-probeg.ru/spb/cars/nissan/page/", 3),
+                array("https://rolf-probeg.ru/spb/cars/suzuki/page/", 1),
+            );
+            for ($l=1; $l<count($pages); $l++){
+
+
+
+            for ($i=1; $i<=$pages[$l][1]; $i++){
+
+
+                $mark = $this->string_between_two_string($pages[$l][0], 'cars/', '/page');
+
+                $response = $this->client->get($pages[$l][0].$i.'/?dealer%5B0%5D=75'); // URL, where you want to fetch the content
+
+                // get content and pass to the crawler
+                $content = $response->getBody()->getContents();
+                $crawler = new Crawler( $content );
+
+                $_this = $this;
+
+
+
+                $data = $crawler->filter('a.card-car')
+                ->each(function (Crawler $node, $i) use($_this) {
+                    return $node->attr('href');
+                }
+               );
+                           // return $data;
+
+                            foreach($data as $row){
+                                $link = new Link();
+                                $link->link= "https://rolf-probeg.ru".$row;
+                                $link->category= $mark;
+                                $link->save();
+                            }
+
+
+                        }
+
+            }
+    }
+
+
+ public function rolf()
+    {
+
+            $url = 'https://rolf-probeg.ru/spb/cars/page/';
+            $pages = array (
+                array("https://rolf-probeg.ru/spb/cars/audi/page/", 2, 'audi'),
+                array("https://rolf-probeg.ru/spb/cars/datsun/page/", 1,),
+                array("https://rolf-probeg.ru/spb/cars/hyundai/page/", 4),
+                array("https://rolf-probeg.ru/spb/cars/lexus/page/", 1),
+                array("https://rolf-probeg.ru/spb/cars/opel/page/", 1),
+                array("https://rolf-probeg.ru/spb/cars/toyota/page/", 3),
+                array("https://rolf-probeg.ru/spb/cars/bmw/page/", 3),
+                array("https://rolf-probeg.ru/spb/cars/ford/page/", 3),
+                array("https://rolf-probeg.ru/spb/cars/infiniti/page/", 1),
+                array("https://rolf-probeg.ru/spb/cars/mazda/page/", 1),
+                array("https://rolf-probeg.ru/spb/cars/peugeot/page/", 1),
+                array("https://rolf-probeg.ru/spb/cars/volkswagen/page/", 3),
+                array("https://rolf-probeg.ru/spb/cars/cadillac/page/", 1),
+                array("https://rolf-probeg.ru/spb/cars/geely/page/", 1),
+                array("https://rolf-probeg.ru/spb/cars/jaguar/page/", 1),
+                array("https://rolf-probeg.ru/spb/cars/mercedes/page/", 3),
+                array("https://rolf-probeg.ru/spb/cars/porsche/page/", 1),
+                array("https://rolf-probeg.ru/spb/cars/volvo/page/", 1),
+                array("https://rolf-probeg.ru/spb/cars/chery/page/", 1),
+                array("https://rolf-probeg.ru/spb/cars/genesis/page/", 1),
+                array("https://rolf-probeg.ru/spb/cars/kia/page/", 3),
+                array("https://rolf-probeg.ru/spb/cars/mini/page/", 1),
+                array("https://rolf-probeg.ru/spb/cars/renault/page/", 2),
+                array("https://rolf-probeg.ru/spb/cars/chevrolet/page/", 1),
+                array("https://rolf-probeg.ru/spb/cars/haval/page/", 1),
+                array("https://rolf-probeg.ru/spb/cars/lada--vaz-/page/", 2),
+                array("https://rolf-probeg.ru/spb/cars/mitsubishi/page/", 3),
+                array("https://rolf-probeg.ru/spb/cars/skoda/page/", 5),
+                array("https://rolf-probeg.ru/spb/cars/citroen/page/", 1),
+                array("https://rolf-probeg.ru/spb/cars/honda/page/", 1),
+                array("https://rolf-probeg.ru/spb/cars/land-rover/page/", 1),
+                array("https://rolf-probeg.ru/spb/cars/nissan/page/", 3),
+                array("https://rolf-probeg.ru/spb/cars/suzuki/page/", 1),
+            );
+            for ($l=1; $l<count($pages); $l++){
+
+
+
+            for ($i=1; $i<=$pages[$l][1]; $i++){
+
+
+                $mark = $this->string_between_two_string($pages[$l][0], 'cars/', '/page');
+
+                $response = $this->client->get($pages[$l][0].$i.'/?dealer%5B0%5D=75'); // URL, where you want to fetch the content
+
+                // get content and pass to the crawler
+                $content = $response->getBody()->getContents();
+                $crawler = new Crawler( $content );
+
+                $_this = $this;
+
+
+
+                $data = $crawler->filter('a.card-car')
+                ->each(function (Crawler $node, $i) use($_this) {
+                    return $node->attr('href');
+                }
+               );
+                           // return $data;
+
+                            foreach($data as $row){
+                                $link = new Link();
+                                $link->link= "https://rolf-probeg.ru".$row;
+                                $link->category= $mark;
+                                $link->save();
+                            }
+
+
+                        }
+
+            }
+    }
+
+    public function rolf_products(){
+        $links = Link::where('id', '>', 324)->get();
+        foreach($links as $link){
+
+
+        $response = $this->client->get($link->link); // URL, where you want to fetch the content
+        // get content and pass to the crawler
+        $content = $response->getBody()->getContents();
+        $crawler = new Crawler( $content );
+        $_this = $this;
+
+        $name = $crawler->filter('h1')->text();
+        //$features = $crawler->filter("ul")->first();
+        $features = $crawler->filterXPath("//ul[@class='space-y-[16px]']");
+        $price = $crawler->filter("div.mt-52")->attr('data-price');
+        //$klik = $crawler->attr('itemprop');
+
+        $title = $crawler->filter('meta[itemprop="name"]')->eq(0)->attr('content');
+
+        $owner =  $features->filter('li')->eq(0)->text();
+        $year =  $features->filter('li')->eq(2)->text();
+        $engine =  $features->filter('li')->eq(4)->text();
+        $milage =  (int) filter_var($features->filter('li')->eq(3)->text(), FILTER_SANITIZE_NUMBER_INT);
+        $korobka = $features->filter('li')->eq(5)->text();
+        //return $klik;
+
+                   $images = $crawler->filter('li.gallery__slide')
+                        ->each(function (Crawler $node, $i) use($_this) {
+                            return $node->attr('href');
+                        }
+                       );
+
+                   $link_array = explode('/',substr($link->link, 0, -1));
+                   $page = end($link_array);
+                   $l = 0;
+                   foreach($images as $image){
+                        //Image::make($image)->save(public_path("new_image/".$page.'/'. basename($image)));
+                       if ($l > 6) {
+                           break;
+                       }
+                       if($image !==null){
+                        try {
+                            $contents = file_get_contents($image);
+                            $filename = substr($image, strrpos($image, '/') + 1);
+                            Storage::put("cars_new/".$link->category.'/'.$page.'/'.$filename, $contents);
+                        }
+                        catch (\InvalidArgumentException $e) {
+                            continue;
+                        }
+                        $l++;
+                    }
+                   }
+                   sleep(1);
+
+                   $product = new RolfProduct();
+                   $product->name = $title !== null ?  $title : $name;
+                   $product->pictures = $images;
+                   $product->mark = $link->category;
+                   $product->category = $page;
+                   $product->link = $link->link;
+                   $product->owner = $owner;
+                   $product->year = $year;
+                   $product->price = $price;
+                   $product->engine = $engine;
+                   $product->milage = $milage;
+                   $product->korobka = $korobka;
+                   $product->uid = Str::uuid();
+                   $product->save();
+                }
+}
+
+    function string_between_two_string($str, $starting_word, $ending_word)
+    {
+        $subtring_start = strpos($str, $starting_word);
+        //Adding the starting index of the starting word to
+        //its length would give its ending index
+        $subtring_start += strlen($starting_word);
+        //Length of our required sub string
+        $size = strpos($str, $ending_word, $subtring_start) - $subtring_start;
+        // Return the substring from the index substring_start of length size
+        return substr($str, $subtring_start, $size);
+    }
+
+
+
 }
