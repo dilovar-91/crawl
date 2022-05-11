@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class UnoProduct extends Model
 {
     use HasFactory;
+    protected $table = 'quke_products';
     protected $casts = [
         'pictures'   => 'json',
        // 'images'   => 'json',
