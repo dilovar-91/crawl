@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
+use MongoDB\Driver\Exception\ExecutionTimeoutException;
 use Symfony\Component\DomCrawler\Crawler;
 use GuzzleHttp\Exception\GuzzleException;
 use GuzzleHttp\Client;
@@ -89,6 +90,119 @@ class UnoTechnoController extends Controller
 
 
 
+        }
+    }
+
+    public function quke_products(){
+        $links = Link::where('id', '>', 0)->get();
+        foreach($links as $link){
+
+
+            $response = $this->client->get($link->link); // URL, where you want to fetch the content
+            // get content and pass to the crawler
+            $content = $response->getBody()->getContents();
+            $crawler = new Crawler( $content );
+            $_this = $this;
+
+            $name = $crawler->filter('h1')->text();
+
+            $features = $crawler->filter('div.product__b-char-list')->outerHtml();
+            $all_features = $crawler->filter('div.p-chars__inner')->outerHtml();
+            try {
+            $mark = $crawler->filter('a.block__val-link')->eq(2)->text();
+            }
+            catch (Exception $e) {
+                $mark = null;
+            }
+            try {
+                $price =(int)filter_var($crawler->filter('span .price__value')->text(), FILTER_SANITIZE_NUMBER_INT);
+            }
+             catch (Exception $e) {
+                continue;
+            }
+
+
+
+            $images = $crawler->filter('ul.product__gall-preview li')
+                ->each(function (Crawler $node, $i) use($_this) {
+                    return 'https://quke.ru' . $node->attr('data-big');
+                }
+                );
+
+            foreach ($images as $image) {
+
+                if ($image !== null) {
+                    try {
+                        $contents = file_get_contents($image);
+                        $filename = substr($image, strrpos($image, '/') + 1);
+                        Storage::put('quke/' . $filename, $contents);
+                    } catch (Exception $e) {
+                        continue;
+                    }
+                }
+            }
+
+            $colors = array(
+                'blue'=>'сыный',
+                'red'=>'красный',
+                'grey'=>'серый',
+                'white'=>'белый',
+                'purple'=>'фиолетовый',
+                'black'=>'черный',
+                'silver'=>'серебристый',
+            );
+
+
+            $pieces = explode(' ', $name);
+            $color_name = array_pop($pieces);
+
+
+
+            try{
+                $color =  $colors[strtolower($color_name)];
+            }
+            catch (Exception $e) {
+                $color  = null;
+            }
+
+            try{
+                $ram = $crawler->filter('.p-chars__col')->eq(2)->filter('.title')->eq(0)->text();
+            }
+            catch (Exception $e) {
+                $ram  = null;
+            }
+
+            try{
+                $volume = $crawler->filter('.p-chars__col')->eq(2)->filter('.title')->eq(1)->text();
+            }
+            catch (Exception $e) {
+                $volume  = null;
+            }
+
+            //return $volume;
+
+
+
+
+
+
+
+
+            $product = new UnoProduct();
+            $product->name = $name;
+            $product->category =  "Смартфоны";
+            $product->description = $all_features;
+            $product->feature = $features;
+            $product->pictures = $images;
+            $product->mark = $mark;
+            //$product->color = $colors;
+            $product->color_name = $color;
+            $product->ram = $ram;
+            $product->volume = $volume;
+            $product->price = $price;
+            //$product->versions = $versions;
+            $product->save();
+            sleep(3);
         }
     }
 
