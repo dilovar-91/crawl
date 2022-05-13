@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class Link extends Model
 {
     use HasFactory;
-    protected $table = 'quke_links';
+    protected $table = 'autogermes_links';
     protected $casts = [
         'pictures'   => 'json'
     ];

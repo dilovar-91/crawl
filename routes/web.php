@@ -53,6 +53,10 @@ Route::get('/quke-links', [UnoTechnoController::class, 'quke_links']);
 Route::get('/quke-products', [UnoTechnoController::class, 'quke_products']);
 Route::get('/quke-list', [UnoTechnoController::class, 'quke_list']);
 
+Route::get('/autogermes-links', [UrbanController::class, 'autogermes']);
+Route::get('/autogermes-products', [UrbanController::class, 'autogermes_products']);
+
+
 
 Route::get('/urban', [UrbanController::class, 'index']);
 Route::get('/automir-links', [UrbanController::class, 'automir']);
