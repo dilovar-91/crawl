@@ -8,8 +8,8 @@ use Illuminate\Database\Eloquent\Model;
 class CarModel extends Model
 {
     use HasFactory;
-    protected $table = 'automir_models';
+    protected $table = 'car_models';
     protected $casts = [
-        'pictures'   => 'json'
+        //'pictures'   => 'json'
     ];
 }

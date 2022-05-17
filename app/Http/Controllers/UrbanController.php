@@ -19,6 +19,7 @@ class UrbanController extends Controller
 {
 
     private $client;
+    private $description;
 
     /**
      * Class __contruct
@@ -30,11 +31,132 @@ class UrbanController extends Controller
             'verify' => false
 
         ]);
+        $this->description = '<p><span style="background-color:rgb(255, 255, 255); font-family:arial,helvetica neue,helvetica,sans-serif; font-size:16px">ABТОМОБИЛИ ПPOДАЮТСЯ ТOЛЬКO В КРEДИТ!!!</span><br />
+<br />
+<span style="background-color:rgb(255, 255, 255); font-family:arial,helvetica neue,helvetica,sans-serif; font-size:16px">CTОИMOCTЬ ABТОМОБИЛЯ УKAЗАНA ПО ПPOГPAМME KPЕДИTOBAНИЯ!!!</span><br />
+<span style="background-color:rgb(255, 255, 255); font-family:arial,helvetica neue,helvetica,sans-serif; font-size:16px">▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬</span><br />
+<br />
+<span style="background-color:rgb(255, 255, 255); font-family:arial,helvetica neue,helvetica,sans-serif; font-size:16px">Уникaльныe условия покупки aвтoмобиля в АЦ АВАНГАРД</span><br />
+<br />
+<span style="background-color:rgb(255, 255, 255); font-family:arial,helvetica neue,helvetica,sans-serif; font-size:16px">▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬</span><br />
+<br />
+<span style="background-color:rgb(255, 255, 255); font-family:arial,helvetica neue,helvetica,sans-serif; font-size:16px">Для пoлучение пpeдвaритeльногo рeшeния по кредиту:</span><br />
+<span style="background-color:rgb(255, 255, 255); font-family:arial,helvetica neue,helvetica,sans-serif; font-size:16px">1. Запoлнитe онлайн-заявку на сайте автоцентра &mdash; Вам не нужно посещать автосалон;</span><br />
+<span style="background-color:rgb(255, 255, 255); font-family:arial,helvetica neue,helvetica,sans-serif; font-size:16px">2. Узнайте решения банков и одобренные программы кредитования;</span><br />
+<span style="background-color:rgb(255, 255, 255); font-family:arial,helvetica neue,helvetica,sans-serif; font-size:16px">3. При положительном решении &mdash; посетите автосалон.</span><br />
+<br />
+<span style="background-color:rgb(255, 255, 255); font-family:arial,helvetica neue,helvetica,sans-serif; font-size:16px">+ Первоначальный взнос от 0%;</span><br />
+<br />
+<span style="background-color:rgb(255, 255, 255); font-family:arial,helvetica neue,helvetica,sans-serif; font-size:16px">+ Кредит по двум документам;</span><br />
+<br />
+<span style="background-color:rgb(255, 255, 255); font-family:arial,helvetica neue,helvetica,sans-serif; font-size:16px">+ Возможность досрочного погашения с 1 месяца;</span><br />
+<br />
+<span style="background-color:rgb(255, 255, 255); font-family:arial,helvetica neue,helvetica,sans-serif; font-size:16px">+ Одобрение кредита за 1 час и выдача автомобиля день в день;</span><br />
+<br />
+<span style="background-color:rgb(255, 255, 255); font-family:arial,helvetica neue,helvetica,sans-serif; font-size:16px">+ Льготные программы автокредита, более 30 банков партнеров;</span><br />
+<br />
+<span style="background-color:rgb(255, 255, 255); font-family:arial,helvetica neue,helvetica,sans-serif; font-size:16px">+ Лучшие тарифы КАСКО, ОСАГО;</span><br />
+<br />
+<br />
+<span style="background-color:rgb(255, 255, 255); font-family:arial,helvetica neue,helvetica,sans-serif; font-size:16px">▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬</span><br />
+<br />
+<span style="background-color:rgb(255, 255, 255); font-family:arial,helvetica neue,helvetica,sans-serif; font-size:16px">+ Покупка автомобиля за 1 час;</span><br />
+<br />
+<span style="background-color:rgb(255, 255, 255); font-family:arial,helvetica neue,helvetica,sans-serif; font-size:16px">+ Каждый автомобиль проходит комплексную диагностику более чем по 140 пунктам;</span><br />
+<br />
+<span style="background-color:rgb(255, 255, 255); font-family:arial,helvetica neue,helvetica,sans-serif; font-size:16px">+ Гарантия юридической чистоты на каждый автомобиль с пробегом;</span><br />
+<br />
+<span style="background-color:rgb(255, 255, 255); font-family:arial,helvetica neue,helvetica,sans-serif; font-size:16px">+ Специальные условия при обмене своего автомобиля и покупке автомобиля в кредит;</span><br />
+<br />
+<span style="background-color:rgb(255, 255, 255); font-family:arial,helvetica neue,helvetica,sans-serif; font-size:16px">+ Скидка до 100 000 рублей при покупке с Тrаdе-In;</span><br />
+<br />
+<span style="background-color:rgb(255, 255, 255); font-family:arial,helvetica neue,helvetica,sans-serif; font-size:16px">▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬</span><br />
+<br />
+<span style="background-color:rgb(255, 255, 255); font-family:arial,helvetica neue,helvetica,sans-serif; font-size:16px">Мы всегда рады видеть Вас в нашем автоцентре.</span><br />
+<br />
+<span style="background-color:rgb(255, 255, 255); font-family:arial,helvetica neue,helvetica,sans-serif; font-size:16px">Работаем для Вас ежедневно с 8:00 до 20:00.</span><br />
+<br />
+<span style="background-color:rgb(255, 255, 255); font-family:arial,helvetica neue,helvetica,sans-serif; font-size:16px">Ждем Вас по адресу: г. Краснодар, Ростовское шоссе, 34/10</span><br />
+<br />
+<span style="background-color:rgb(255, 255, 255); font-family:arial,helvetica neue,helvetica,sans-serif; font-size:16px">- Тонированные стекла</span><br />
+<span style="background-color:rgb(255, 255, 255); font-family:arial,helvetica neue,helvetica,sans-serif; font-size:16px">- Стальные диски</span><br />
+<span style="background-color:rgb(255, 255, 255); font-family:arial,helvetica neue,helvetica,sans-serif; font-size:16px">- Защита картера</span><br />
+<span style="background-color:rgb(255, 255, 255); font-family:arial,helvetica neue,helvetica,sans-serif; font-size:16px">- Электрообогрев лобового стекла</span><br />
+<span style="background-color:rgb(255, 255, 255); font-family:arial,helvetica neue,helvetica,sans-serif; font-size:16px">- Крепление для детского кресла (Isofix/LATCH)</span><br />
+<span style="background-color:rgb(255, 255, 255); font-family:arial,helvetica neue,helvetica,sans-serif; font-size:16px">- Третий задний подголовник</span><br />
+<span style="background-color:rgb(255, 255, 255); font-family:arial,helvetica neue,helvetica,sans-serif; font-size:16px">- Передний центральный подлокотник</span><br />
+<span style="background-color:rgb(255, 255, 255); font-family:arial,helvetica neue,helvetica,sans-serif; font-size:16px">- Сигнализация с обратной связью</span><br />
+<span style="background-color:rgb(255, 255, 255); font-family:arial,helvetica neue,helvetica,sans-serif; font-size:16px">- Блокировка замков задних дверей</span><br />
+<span style="background-color:rgb(255, 255, 255); font-family:arial,helvetica neue,helvetica,sans-serif; font-size:16px">- Штатная аудиоподготовка</span><br />
+<span style="background-color:rgb(255, 255, 255); font-family:arial,helvetica neue,helvetica,sans-serif; font-size:16px">- Темный салон</span><br />
+<span style="background-color:rgb(255, 255, 255); font-family:arial,helvetica neue,helvetica,sans-serif; font-size:16px">- Сиденье водителя: ручная регулировка</span><br />
+<span style="background-color:rgb(255, 255, 255); font-family:arial,helvetica neue,helvetica,sans-serif; font-size:16px">- Сиденье пассажира: ручная регулировка</span><br />
+<span style="background-color:rgb(255, 255, 255); font-family:arial,helvetica neue,helvetica,sans-serif; font-size:16px">- Регулировка руля</span></p>
+';
     }
 
-    public function index()
+    public function iterate()
     {
-        $items = RolfProduct::where("id", '>', 1420)->whereNotNull('price')->get();
+        $marks = array(
+            'Audi' => '116',
+            'BMW' => '117',
+            'Chery' => '118',
+            'Changan' => '119',
+            'Ford' => '120',
+            'Geely' => '121',
+            'Honda' => '122',
+            'Haval' => '123',
+            'Hyundai' => '124',
+            'Kia' => '125',
+            'Lada' => '126',
+            'Mazda' => '127',
+            'Nissan' => '128',
+            'Renault' => '129',
+            'Skoda' => '130',
+            'Volkswagen' => '131',
+            'Uaz' => '174',
+            'Suzuki' => '175',
+            'Peugeot' => '176',
+            'Mitsubishi' => '177',
+            'Jeep' => '178',
+            'Citroen' => '179'
+        );
+        $cars = RolfProduct::where('mark', '<>', 'Citroen')->where('mark', '<>', 'Peugeot')->where('mark', '<>', 'Jeep')->get();
+        foreach ($cars as $row) {
+            $item = RolfProduct::where('id', $row->id)->first();
+            if (!empty($item)){
+                $item->model_id  =  $this->getModelId($row->model, $row->mark_id);
+                $item->save();
+            }
+            else {
+                continue;
+            }
+
+            //$item->mark_id = $marks[$row->mark];
+
+        }
+
+    }
+
+    public function getModelId($model, $mark)
+    {
+
+        if($mark !== null){
+        $car = CarModel::where('name','like',  '%'.$model. '%')->first();
+        if (empty($car)) {
+            return null;
+        }
+        return $car->id;
+        }
+
+    }
+
+
+    public function index()
+
+    {
+        $items = RolfProduct::where("id", '>', 0)->where('mark', '<>', 'Citroen')->where('mark', '<>', 'Peugeot')->where('mark', '<>', 'Jeep')->whereNotNull('price')->get();
+
 
         $marks = array(
             'Audi' => '116',
@@ -61,33 +183,35 @@ class UrbanController extends Controller
             'Citroen' => '179'
         );
         foreach ($items as $row) {
+
             $id = null;
             //$files = Storage::disk('public')->files($row->link);
             $item = new EboardDb();
             $item->title = $row->name;
             $item->uid = $row->uid;
-            $item->ip =  mt_rand(0, 255) . "." . mt_rand(0, 255) . "." . mt_rand(0, 255) . "." . mt_rand(0, 255);
+            $item->ip = mt_rand(0, 255) . "." . mt_rand(0, 255) . "." . mt_rand(0, 255) . "." . mt_rand(0, 255);
             $item->cat = 18;
-            $item->region = 3;
-            $item->date_add = 1683899294;
+            $item->region = 37;
+            $item->date_add = 1652791725;
             $item->uid = Str::uuid();
-            $item->user_id = 4;
+            $item->user_id = 6;
             $item->approved = 1;
+            $item->active = 1;
             $item->status = 1;
             $item->save();
             $p = 0;
-            $id =  $item->id;
+            $id = $item->id;
 
 
-            if($row->pictures !== null) {
+            if ($row->pictures !== null) {
                 foreach ($row->pictures as $image) {
                     if ($image !== null) {
                         try {
-                            $contents = file_get_contents('https://www.avtogermes.ru'.$image);
+                            $contents = file_get_contents('https://www.avtogermes.ru' . $image);
                             $image_name = Str::uuid() . '.png';
                             Storage::put("germes/" . $image_name, $contents);
                             //Storage::copy('public/' . $image, 'germes/' . $image_name);
-                            DB::table('eboard_filter_val_files')->insert(['filter' => 6, 'msg' =>  $id, 'file' => $image_name, 'sort' => $p]);
+                            DB::table('eboard_filter_val_files')->insert(['filter' => 6, 'msg' => $id, 'file' => $image_name, 'sort' => $p]);
                             $p++;
                         } catch (Exception $e) {
                             continue;
@@ -96,58 +220,62 @@ class UrbanController extends Controller
                 }
             }
 
-            DB::table('eboard_filter_val_int')->insert(['filter' => 62, 'msg' =>  $id, 'val' => $row->year]);
+            DB::table('eboard_filter_val_int')->insert(['filter' => 62, 'msg' => $id, 'val' => $row->year]);
             $engine_volumes = array(
-                "1.2"=>159,
-                "1.3"=>160,
-                "1.4"=>161,
-                "1.5"=>162,
-                "1.6"=>163,
-                "1.8"=>164,
-                "2.0"=>165,
-                "2.2"=>166,
-                "2.3"=>167,
-                "2.4"=>168,
-                "2.5"=>169,
-                "2.7"=>170,
-                "3.0"=>171,
-                "3"=>171,
-                "3.5"=>174,
-                "3.6"=>172,
-                "3.7"=>173
+                "1.2" => 159,
+                "1.3" => 160,
+                "1.4" => 161,
+                "1.5" => 162,
+                "1.6" => 163,
+                "1.8" => 164,
+                "2.0" => 165,
+                "2.2" => 166,
+                "2.3" => 167,
+                "2.4" => 168,
+                "2.5" => 169,
+                "2.7" => 170,
+                "3.0" => 171,
+                "3" => 171,
+                "3.5" => 174,
+                "3.6" => 172,
+                "3.7" => 173
             );
 
-            DB::table('eboard_filter_val_price')->insert(['filter' => 39, 'msg' =>  $id, 'val_user' => $row->price, 'val_default' => ($row->price - 300000), 'currency' => 1]);
+            DB::table('eboard_filter_val_price')->insert(['filter' => 39, 'msg' => $id, 'val_user' => $row->price, 'val_default' => ($row->price - 300000), 'currency' => 1]);
 
             DB::table('eboard_filter_val_set')->insert(['filter' => 76, 'msg' => $id, 'val' => $engine_volumes[$row->volume]]);
             DB::table('eboard_filter_val_set')->insert(['filter' => 74, 'msg' => $id, 'val' => $row->korobka_id]);
             DB::table('eboard_filter_val_set')->insert(['filter' => 73, 'msg' => $id, 'val' => $row->engine_id]);
             DB::table('eboard_filter_val_set')->insert(['filter' => 68, 'msg' => $id, 'val' => $row->privod_id]);
-            if($row->body_id > 0) {
+            if ($row->body_id > 0) {
                 DB::table('eboard_filter_val_set')->insert(['filter' => 67, 'msg' => $id, 'val' => $row->body_id]);
             }
             DB::table('eboard_filter_val_set')->insert(['filter' => 17, 'msg' => $id, 'val' => 42]);
-            if($marks[$row->mark] > 0){
-                DB::table('eboard_filter_val_set')->insert(['filter' => 71, 'msg' => $id, 'val' => $marks[$row->mark]]);
+            if ($row->mark_id > 0) {
+                DB::table('eboard_filter_val_set')->insert(['filter' => 71, 'msg' => $id, 'val' => $row->mark_id]);
+
             }
-            DB::table('eboard_filter_val_string')->insert(['filter' => 3, 'msg' =>  $id, 'val' => 'г. Москва, ул. Автозаводская, д.23, корп. 7', 'ind_hash' => Str::uuid()]);
-            DB::table('eboard_filter_val_string')->insert(['filter' => 14, 'msg' =>  $id, 'val' => '8 (800) 444-75-20', 'ind_hash' => Str::uuid()]);
-            DB::table('eboard_filter_val_string')->insert(['filter' => 40, 'msg' =>  $id, 'val' => '55.70358592199984,37.64030466552952,16', 'ind_hash' => Str::uuid()]);
-
-            DB::table('eboard_filter_val_string')->insert(['filter' => 75, 'msg' =>  $id, 'val' => $row->power, 'ind_hash' => Str::uuid()]);
-            DB::table('eboard_filter_val_string')->insert(['filter' => 77, 'msg' =>  $id, 'val' => $row->color_name, 'ind_hash' => Str::uuid()]);
-            if($row->equipment !== null){
-                DB::table('eboard_filter_val_string')->insert(['filter' => 78, 'msg' =>  $id, 'val' => $row->equipment, 'ind_hash' => Str::uuid()]);
+            if ($row->model_id > 0) {
+                DB::table('eboard_filter_val_set')->insert(['filter' => 72, 'msg' => $id, 'val' => $row->model_id]);
             }
-            DB::table('eboard_filter_val_string')->insert(['filter' => 16, 'msg' =>  $id, 'val' => "https://autocentr.su/", 'ind_hash' => Str::uuid()]);
+            DB::table('eboard_filter_val_string')->insert(['filter' => 3, 'msg' => $id, 'val' => 'г. Краснодар, Ростовское шоссе, 34/10', 'ind_hash' => Str::uuid()]);
+            DB::table('eboard_filter_val_string')->insert(['filter' => 14, 'msg' => $id, 'val' => '8 (861) 211-49-46', 'ind_hash' => Str::uuid()]);
+            DB::table('eboard_filter_val_string')->insert(['filter' => 40, 'msg' => $id, 'val' => '45.11354364152209,38.996480601316904,17', 'ind_hash' => Str::uuid()]);
+
+            DB::table('eboard_filter_val_string')->insert(['filter' => 75, 'msg' => $id, 'val' => $row->power, 'ind_hash' => Str::uuid()]);
+            DB::table('eboard_filter_val_string')->insert(['filter' => 77, 'msg' => $id, 'val' => $row->color_name, 'ind_hash' => Str::uuid()]);
+            if ($row->equipment !== null) {
+                DB::table('eboard_filter_val_string')->insert(['filter' => 78, 'msg' => $id, 'val' => $row->equipment, 'ind_hash' => Str::uuid()]);
+            }
+            //DB::table('eboard_filter_val_string')->insert(['filter' => 16, 'msg' => $id, 'val' => "https://autocentr.su/", 'ind_hash' => Str::uuid()]);
 
 
-            DB::table('eboard_filter_val_text')->insert(['filter' => 0, 'msg' =>  $id, 'val' => $row->description, 'ind' => $row->name, 'ind_hash' => Str::uuid()]);
+            DB::table('eboard_filter_val_text')->insert(['filter' => 0, 'msg' => $id, 'val' => $this->description, 'ind' => $row->name, 'ind_hash' => Str::uuid()]);
 
-            DB::table('eboard_ind_cat')->insert(['message' =>  $id, 'cat' => 1]);
-            DB::table('eboard_ind_cat')->insert(['message' =>  $id, 'cat' => 18]);
+            DB::table('eboard_ind_cat')->insert(['message' => $id, 'cat' => 1]);
+            DB::table('eboard_ind_cat')->insert(['message' => $id, 'cat' => 18]);
 
-            DB::table('eboard_ind_region')->insert(['message' =>  $id, 'cat' => 3]);
+            DB::table('eboard_ind_region')->insert(['message' => $id, 'cat' => 37]);
             //DB::table('eboard_orders')->insert(['message_id' =>  $id, 'time_end' => 1683197806, 'days' => 365, 'status' => 1, 'type' => 'r', 'user_id' => 4]);
 
 
@@ -205,6 +333,7 @@ class UrbanController extends Controller
 
         }
     }
+
     public function autogermes()
     {
 
@@ -227,21 +356,20 @@ class UrbanController extends Controller
 
             for ($p = 1; $p <= $pages[$l][1]; $p++) {
 
-            $uri = $url . $pages[$l][0].'?page='.$p;
-            //echo $uri;
+                $uri = $url . $pages[$l][0] . '?page=' . $p;
+                //echo $uri;
 
 
-            $response = $this->client->get($uri); // URL, where you want to fetch the content
+                $response = $this->client->get($uri); // URL, where you want to fetch the content
 
 
-
-            // get content and pass to the crawler
-            $content = $response->getBody()->getContents();
-            $crawler = new Crawler($content);
+                // get content and pass to the crawler
+                $content = $response->getBody()->getContents();
+                $crawler = new Crawler($content);
 
 
                 $data = $crawler->filter('div.pb-col')
-                    ->each(function (Crawler $node)  {
+                    ->each(function (Crawler $node) {
                         return $node->filter('a')->attr('href');
                     }
                     );
@@ -278,90 +406,90 @@ class UrbanController extends Controller
             $name = mb_substr($name, 0, -3);
             try {
                 $description = $crawler->filter("div.table-responsive")->outerHtml();
-            } catch(Exception $e) {
+            } catch (Exception $e) {
                 $description = null;
             }
             try {
                 $mark = $crawler->filter("div.options")->filter('div.col-lg-7')->eq(0)->text();
-            } catch(Exception $e) {
+            } catch (Exception $e) {
                 $mark = null;
             }
 
             try {
                 $model = $crawler->filter("div.options")->filter('div.col-lg-7')->eq(1)->text();
-            } catch(Exception $e) {
+            } catch (Exception $e) {
                 $model = null;
             }
             try {
                 $complectation = $crawler->filter("div.options")->filter('div.col-lg-7')->eq(2)->text();
-            } catch(Exception $e) {
+            } catch (Exception $e) {
                 $complectation = null;
             }
             try {
                 $year = $crawler->filter("div.options")->filter('div.col-lg-7')->eq(3)->text();
-            } catch(Exception $e) {
+            } catch (Exception $e) {
                 $year = null;
             }
             try {
                 $privod = $crawler->filter("div.options")->filter('div.col-lg-7')->eq(10)->text();
-            } catch(Exception $e) {
+            } catch (Exception $e) {
                 $privod = null;
             }
             $privods = array(
-                "Передний"=>91,
-                "Задный"=>92,
-                "Полный"=>93
+                "Передний" => 91,
+                "Задный" => 92,
+                "Полный" => 93
             );
             try {
                 $color = $crawler->filter("div.options")->filter('div.col-lg-7')->eq(4)->text();
-            } catch(Exception $e) {
+            } catch (Exception $e) {
                 $color = null;
             }
             $bodies = array(
-                "Седан"=>85,
-                "Хэтчбек"=>86,
-                "Универсал"=>87,
-                "Кроссовер"=>143,
-                "Внедорожник"=>88,
-                "Кабриолет"=>89,
-                "Минивэн"=>144
+                "Седан" => 85,
+                "Хэтчбек" => 86,
+                "Универсал" => 87,
+                "Кроссовер" => 143,
+                "Внедорожник" => 88,
+                "Кабриолет" => 89,
+                "Минивэн" => 144
             );
             $dvig = array(
-                "Бензин"=>145,
-                "Дизель"=>146,
-                "Гибрид"=>147,
-                "Электро"=>143,
+                "Бензин" => 145,
+                "Дизель" => 146,
+                "Гибрид" => 147,
+                "Электро" => 143,
             );
 
             try {
                 $kuzov = $crawler->filter("div.options")->filter('div.col-lg-7')->eq(5)->text();
-            } catch(Exception $e) {
+            } catch (Exception $e) {
                 $kuzov = null;
             }
             try {
                 $power = $crawler->filter("div.options")->filter('div.col-lg-7')->eq(13)->text();
-            } catch(Exception $e) {
+            } catch (Exception $e) {
                 $power = null;
             }
             try {
-                $vol =  round($crawler->filter("div.options")->filter('div.col-lg-7')->eq(11)->text()/1000, 1);
-            } catch(Exception $e) {
+                $vol = round($crawler->filter("div.options")->filter('div.col-lg-7')->eq(11)->text() / 1000, 1);
+            } catch (Exception $e) {
                 $vol = null;
             }
             try {
                 $engine_type = $crawler->filter("div.options")->filter('div.col-lg-7')->eq(9)->text();
-            } catch(Exception $e) {
+            } catch (Exception $e) {
                 $engine_type = null;
             }
             try {
                 $korobka = $crawler->filter("div.options")->filter('div.col-lg-7')->eq(12)->text();
-            } catch(Exception $e) {
+            } catch (Exception $e) {
                 $korobka = null;
             }
 
             try {
                 $price = (int)filter_var($crawler->filter("span.new-car-info__price b")->text(), FILTER_SANITIZE_NUMBER_INT);
-            } catch(Exception $e) {
+            } catch (Exception $e) {
                 $price = 0;
             }
 
@@ -371,16 +499,16 @@ class UrbanController extends Controller
             foreach ($images as $image) {
                 if ($image !== null) {
                     try {
-                        $contents = file_get_contents('https://www.avtogermes.ru'.$image);
+                        $contents = file_get_contents('https://www.avtogermes.ru' . $image);
                         $filename = substr($image, strrpos($image, '/') + 1);
-                        Storage::put('restotest/'. $filename, $contents);
+                        Storage::put('restotest/' . $filename, $contents);
                     } catch (\InvalidArgumentException $e) {
                         continue;
                     }
                 }
             }
             $product = new RolfProduct();
-            $product->name =  $name;
+            $product->name = $name;
             $product->pictures = $images;
             $product->mark = ucfirst($mark ?? $link->category);
             $product->model = $model;
@@ -459,16 +587,15 @@ class UrbanController extends Controller
 
             try {
                 $specifications = $crawler->filter("div.product-page__specifications")->outerHtml();
-            } catch(Exception $e) {
+            } catch (Exception $e) {
 
                 $specifications = null;
             }
 
-           // $price = (int)filter_var($crawler->filter("span.card__price-num")->text(), FILTER_SANITIZE_NUMBER_INT);
+            // $price = (int)filter_var($crawler->filter("span.card__price-num")->text(), FILTER_SANITIZE_NUMBER_INT);
 
             $korobka = $crawler->filter('div.product-page__params-group')->eq(0);
             $korobka = mb_substr($korobka->filter('li.product-page__params-item')->eq(2)->text(), 8);
-
 
 
             $images = $crawler->filter('a.product-page__slider-item')->each(function (Crawler $node, $i) {
@@ -490,7 +617,7 @@ class UrbanController extends Controller
             }
 
             $product = new RolfProduct();
-            $product->name =  $name;
+            $product->name = $name;
             $product->pictures = $images;
             $product->mark = $link->category;
             $product->link = $link->link;
@@ -506,10 +633,11 @@ class UrbanController extends Controller
         }
     }
 
-    public function str_replace_last( $search , $replace , $str ) {
-        if( ( $pos = strrpos( $str , $search ) ) !== false ) {
-            $search_length  = mb_strlen( $search );
-            $str    = substr_replace( $str , $replace , $pos , $search_length );
+    public function str_replace_last($search, $replace, $str)
+    {
+        if (($pos = strrpos($str, $search)) !== false) {
+            $search_length = mb_strlen($search);
+            $str = substr_replace($str, $replace, $pos, $search_length);
         }
         return $str;
     }
