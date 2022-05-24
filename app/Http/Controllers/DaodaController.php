@@ -21,6 +21,7 @@ class UrbanController extends Controller
     private $client;
     private $description;
     private $marks;
+    private $transmissions;
 
     /**
      * Class __contruct
@@ -71,57 +72,74 @@ class UrbanController extends Controller
             'Jeep' => '89',
             'Citroen' => '37'
         );
-    }
 
-    public function iterate()
-    {
-        $marks = array(
-            'Audi' => '116',
-            'BMW' => '117',
-            'Chery' => '118',
-            'Changan' => '119',
-            'Ford' => '120',
-            'Geely' => '121',
-            'Honda' => '122',
-            'Haval' => '123',
-            'Hyundai' => '124',
-            'Kia' => '125',
-            'Lada' => '126',
-            'Mazda' => '127',
-            'Nissan' => '128',
-            'Renault' => '129',
-            'Skoda' => '130',
-            'Volkswagen' => '131',
-            'Uaz' => '174',
-            'Suzuki' => '175',
-            'Peugeot' => '176',
-            'Mitsubishi' => '177',
-            'Jeep' => '178',
-            'Citroen' => '179'
+        $this->transmissions= array(
+           'Access' => '1',
+           'ACTIVE LONG' => '2',
+           'Active Plus' => '3',
+           'ACTIVE STANDART' => '4',
+           'ALLURE' => '5',
+           'Base' => '6',
+           'Business' => '7',
+           'Classic' => '8',
+           'Comfort' => '9',
+           'Comfort +Winter' => '10',
+           'COMFORT N (19)' => '11',
+           'COSMO' => '12',
+           'Drive' => '13',
+           'Elegance+Prestige+Safety' => '14',
+           'Elite' => '15',
+           'Exclusive' => '16',
+           'Family' => '17',
+           'Family Plus' => '18',
+           'FEEL' => '19',
+           'FEEL Edition' => '20',
+           'FEEL M' => '21',
+           'FEEL XL' => '22',
+           'FLAGSHIP' => '23',
+           'Fourgon' => '24',
+           'GL' => '25',
+           'GLX(CD)' => '26',
+           'GT' => '27',
+           'High-Tech +Exclusive' => '28',
+           'HIGHLINE' => '29',
+           'Instyle' => '30',
+           'Instyle Yandex' => '31',
+           'Intense' => '32',
+           'Intense+' => '33',
+           'Intense+ Yandex' => '34',
+           'Invite' => '35',
+           'Life' => '36',
+           'Lifestyle' => '37',
+           'Lifestyle + Smart Sense' => '38',
+           'LIMITED' => '39',
+           'Luxe' => '40',
+           'Luxe EnjoY Pro' => '41',
+           'Luxe EnjoY Pro/Prestige' => '42',
+           'Luxe/LADA Connect' => '43',
+           'OVERLAND' => '44',
+           'Premium' => '45',
+           'Premium+' => '46',
+           'Prestige' => '47',
+           'Prestige (2-tone color)' => '48',
+           'PRESTIGE 1.5T' => '49',
+           'Prestige+Smart Sense' => '50',
+           'Prime' => '51',
+           'SHINE' => '52',
+           'SHINE Ultimate' => '53',
+           'STEPWAY DRIVE' => '54',
+           'Style' => '55',
+           'Style TCe 150' => '56',
+           'Style+Smart Sense' => '57',
+           'Ultimate' => '58'
         );
-        //$cars = RolfProduct::where('mark', '<>', 'Citroen')->where('mark', '<>', 'Peugeot')->where('mark', '<>', 'Jeep')->get();
-        $cars = RolfProduct::where('mark', 'Kia')->get();
-        foreach ($cars as $row) {
-            $item = RolfProduct::where('id', $row->id)->first();
-            if (!empty($item)){
-                $item->model_id  =  $this->getModelId($row->model, $row->mark_id);
-                $item->save();
-            }
-            else {
-                continue;
-            }
-
-            //$item->mark_id = $marks[$row->mark];
-
-        }
-
     }
 
     public function getModelId($model, $mark)
     {
 
         if($mark !== null){
-        $car = CarModel::where('name','like',  '%'.$model. '%')->first();
+        $car = Model2::where('name','like',  '%'.$model. '%')->first();
         if (empty($car)) {
             return null;
         }
@@ -130,206 +148,22 @@ class UrbanController extends Controller
 
     }
 
-
-    public function index()
-
-    {
-        //$items = RolfProduct::where("id", '>', 0)->where('mark', '<>', 'Citroen')->where('mark', '<>', 'Peugeot')->where('mark', '<>', 'Jeep')->whereNotNull('price')->get();
-        $items = RolfProduct::where('mark', 'Chery')->get();
-
-
-        $marks2 = array(
-            'Audi' => '116',
-            'BMW' => '117',
-            'Chery' => '118',
-            'Changan' => '119',
-            'Ford' => '120',
-            'Geely' => '121',
-            'Honda' => '122',
-            'Haval' => '123',
-            'Hyundai' => '124',
-            'Kia' => '125',
-            'Lada' => '126',
-            'Mazda' => '127',
-            'Nissan' => '128',
-            'Renault' => '129',
-            'Skoda' => '159',
-            'Volkswagen' => '131',
-            'Uaz' => '174',
-            'Suzuki' => '175',
-            'Peugeot' => '176',
-            'Mitsubishi' => '177',
-            'Jeep' => '178',
-            'Citroen' => '179'
-        );
-        foreach ($items as $row) {
-
-            $id = null;
-            //$files = Storage::disk('public')->files($row->link);
-            $item = new EboardDb();
-            $item->title = $row->name;
-            $item->uid = $row->uid;
-            $item->ip = mt_rand(0, 255) . "." . mt_rand(0, 255) . "." . mt_rand(0, 255) . "." . mt_rand(0, 255);
-            $item->cat = 18;
-            $item->region = 37;
-            $item->date_add = 1652791725;
-            $item->uid = Str::uuid();
-            $item->user_id = 8;
-            $item->approved = 1;
-            $item->active = 1;
-            $item->status = 1;
-            $item->save();
-            $p = 0;
-            $id = $item->id;
-
-
-            if ($row->pictures !== null) {
-                foreach ($row->pictures as $image) {
-                    if ($image !== null) {
-                        try {
-                            $contents = file_get_contents('https://www.avtogermes.ru' . $image);
-                            $image_name = Str::uuid() . '.png';
-                            Storage::put("germes/" . $image_name, $contents);
-                            //Storage::copy('public/' . $image, 'germes/' . $image_name);
-                            DB::table('eboard_filter_val_files')->insert(['filter' => 6, 'msg' => $id, 'file' => $image_name, 'folder' => 8, 'sort' => $p]);
-                            $p++;
-                        } catch (Exception $e) {
-                            continue;
-                        }
-                    }
-                }
-            }
-
-            DB::table('eboard_filter_val_int')->insert(['filter' => 62, 'msg' => $id, 'val' => $row->year]);
-            $engine_volumes = array(
-                "1.2" => 159,
-                "1.3" => 160,
-                "1.4" => 161,
-                "1.5" => 162,
-                "1.6" => 163,
-                "1.8" => 164,
-                "2.0" => 165,
-                "2.2" => 166,
-                "2.3" => 167,
-                "2.4" => 168,
-                "2.5" => 169,
-                "2.7" => 170,
-                "3.0" => 171,
-                "3" => 171,
-                "3.5" => 174,
-                "3.6" => 172,
-                "3.7" => 173
-            );
-
-            DB::table('eboard_filter_val_price')->insert(['filter' => 39, 'msg' => $id, 'val_user' => $row->price, 'val_default' => ($row->price - 300000), 'currency' => 1]);
-
-            DB::table('eboard_filter_val_set')->insert(['filter' => 76, 'msg' => $id, 'val' => $engine_volumes[$row->volume]]);
-            DB::table('eboard_filter_val_set')->insert(['filter' => 74, 'msg' => $id, 'val' => $row->korobka_id]);
-            DB::table('eboard_filter_val_set')->insert(['filter' => 73, 'msg' => $id, 'val' => $row->engine_id]);
-            DB::table('eboard_filter_val_set')->insert(['filter' => 68, 'msg' => $id, 'val' => $row->privod_id]);
-            if ($row->body_id > 0) {
-                DB::table('eboard_filter_val_set')->insert(['filter' => 67, 'msg' => $id, 'val' => $row->body_id]);
-            }
-            DB::table('eboard_filter_val_set')->insert(['filter' => 17, 'msg' => $id, 'val' => 42]);
-            if ($row->mark_id > 0) {
-                DB::table('eboard_filter_val_set')->insert(['filter' => 71, 'msg' => $id, 'val' => $row->mark_id]);
-
-            }
-            if ($row->model_id > 0) {
-                DB::table('eboard_filter_val_set')->insert(['filter' => 72, 'msg' => $id, 'val' => $row->model_id]);
-            }
-            DB::table('eboard_filter_val_string')->insert(['filter' => 3, 'msg' => $id, 'val' => 'г. Краснодар', 'ind_hash' => Str::uuid()]);
-            DB::table('eboard_filter_val_string')->insert(['filter' => 14, 'msg' => $id, 'val' => '+7 (861) 211-43-52', 'ind_hash' => Str::uuid()]);
-            DB::table('eboard_filter_val_string')->insert(['filter' => 40, 'msg' => $id, 'val' => '45.04080382964087,38.97723485777147,9', 'ind_hash' => Str::uuid()]);
-
-            DB::table('eboard_filter_val_string')->insert(['filter' => 75, 'msg' => $id, 'val' => $row->power, 'ind_hash' => Str::uuid()]);
-            DB::table('eboard_filter_val_string')->insert(['filter' => 77, 'msg' => $id, 'val' => $row->color_name, 'ind_hash' => Str::uuid()]);
-            if ($row->equipment !== null) {
-                DB::table('eboard_filter_val_string')->insert(['filter' => 78, 'msg' => $id, 'val' => $row->equipment, 'ind_hash' => Str::uuid()]);
-            }
-            //DB::table('eboard_filter_val_string')->insert(['filter' => 16, 'msg' => $id, 'val' => "https://autocentr.su/", 'ind_hash' => Str::uuid()]);
-
-
-            DB::table('eboard_filter_val_text')->insert(['filter' => 0, 'msg' => $id, 'val' => $this->description, 'ind' => $row->name, 'ind_hash' => Str::uuid()]);
-
-            DB::table('eboard_ind_cat')->insert(['message' => $id, 'cat' => 1]);
-            DB::table('eboard_ind_cat')->insert(['message' => $id, 'cat' => 18]);
-
-            DB::table('eboard_ind_region')->insert(['message' => $id, 'cat' => 37]);
-            //DB::table('eboard_orders')->insert(['message_id' =>  $id, 'time_end' => 1683197806, 'days' => 365, 'status' => 1, 'type' => 'r', 'user_id' => 4]);
-
-
-            unset($item);
-            //return;
-
-        }
-
-    }
-
-
-    public function automir()
-    {
-
-        $url = 'https://avtomir.ru/new-cars/';
-        $pages = array(
-            "kia",
-            "hyundai",
-            "nissan",
-            "renault",
-            "chery",
-            "volkswagen",
-            "skoda",
-            "haval",
-            "geely",
-
-        );
-        for ($l = 1; $l < count($pages); $l++) {
-
-
-            $response = $this->client->get($url . $pages[$l] . '/'); // URL, where you want to fetch the content
-
-            // get content and pass to the crawler
-            $content = $response->getBody()->getContents();
-            $crawler = new Crawler($content);
-
-            $_this = $this;
-
-
-            $data = $crawler->filter('div.card')
-                ->each(function (Crawler $node, $i) use ($_this) {
-                    return $node->filter('a.card__name')->attr('href');
-                }
-                );
-            //return $data;
-
-            foreach ($data as $row) {
-
-                $link = new Link();
-                $link->link = "https://avtomir.ru" . $row;
-                $link->category = $pages[$l];
-                $link->save();
-            }
-
-
-        }
-    }
-
     public function autogermes()
     {
 
         $url = 'https://www.avtogermes.ru/sale/new/';
         $pages = array(
             array("kia", 48),
-            array("lada", 54),
-            array("hyundai", 12),
+            array("lada", 52),
+            array("hyundai", 13),
             array("chery", 5),
             array("suzuki", 4),
             array("jeep", 3),
             array("mitsubishi", 6),
-            array("renault", 20),
+            array("renault", 9),
             array("peugeot", 4),
             array("citroen", 4),
-            array("uaz", 6)
+            array("uaz", 5)
         );
         for ($l = 0; $l < count($pages); $l++) {
 
@@ -416,9 +250,9 @@ class UrbanController extends Controller
                 $privod = null;
             }
             $privods = array(
-                "Передний" => 91,
-                "Задный" => 92,
-                "Полный" => 93
+                "Передний" => 1,
+                "Задный" => 2,
+                "Полный" => 3
             );
             try {
                 $color = $crawler->filter("div.options")->filter('div.col-lg-7')->eq(4)->text();
@@ -426,21 +260,22 @@ class UrbanController extends Controller
                 $color = null;
             }
             $bodies = array(
-                "Седан" => 85,
-                "Хэтчбек" => 86,
-                "Универсал" => 87,
-                "Кроссовер" => 143,
-                "Внедорожник" => 88,
-                "Кабриолет" => 89,
-                "Минивэн" => 144,
-                "Купе" => 144,
-                "Фургон" => 144
+                "Седан" => 1,
+                "Хэтчбек" => 2,
+                "Универсал" => 3,
+                "Кроссовер" => 4,
+                "Внедорожник" => 5,
+                "Кабриолет" => 6,
+                "Минивэн" => 7,
+                "Пикап" => 8,
+                "Купе" => 9,
+                "Фургон" => 10
             );
             $dvig = array(
-                "Бензин" => 145,
-                "Дизель" => 146,
-                "Гибрид" => 147,
-                "Электро" => 143,
+                "Бензин" => 1,
+                "Дизель" => 2,
+                "Гибрид" => 3,
+                "Электро" => 4,
             );
 
             try {
@@ -483,7 +318,7 @@ class UrbanController extends Controller
                     try {
                         $contents = file_get_contents('https://www.avtogermes.ru' . $image);
                         $filename = substr($image, strrpos($image, '/') + 1);
-                        Storage::put('restotest/' . $filename, $contents);
+                        Storage::put('daoda/' . $filename, $contents);
                     } catch (\InvalidArgumentException $e) {
                         continue;
                     }
