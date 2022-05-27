@@ -148,7 +148,7 @@ class UrbanController extends Controller
 
     }
 
-    public function autogermes()
+    public function links()
     {
 
         $url = 'https://www.avtogermes.ru/sale/new/';

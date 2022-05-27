@@ -1683,11 +1683,16 @@ class CrawlerController extends Controller
 
     public function rolf_products()
     {
-        $links = Link::where('id', '>', 309)->get();
+        $links = Link::where('id', '>', 55)->get();
         foreach ($links as $link) {
 
+            try {
+                $response = $this->client->get($link->link); // URL, where you want to fetch the content
+            }
+            catch (Exception $e) {
+                continue;
+            }
 
-            $response = $this->client->get($link->link); // URL, where you want to fetch the content
             // get content and pass to the crawler
             $content = $response->getBody()->getContents();
             $crawler = new Crawler($content);
@@ -1748,9 +1753,10 @@ class CrawlerController extends Controller
                 }
                 if ($image !== null) {
                     try {
+                        if ($image === '/static/images/banners/premium-banner1.jpg') continue;
                         $contents = file_get_contents($image);
                         $filename = substr($image, strrpos($image, '/') + 1);
-                        Storage::put("rolf/" . $mark . '/' . $model . '-'. $page. '/' . $filename, $contents);
+                        Storage::put("testrest/" . $mark . '/' . $model . '-'. $page. '/' . $filename, $contents);
                     } catch (\InvalidArgumentException $e) {
                         continue;
                     }

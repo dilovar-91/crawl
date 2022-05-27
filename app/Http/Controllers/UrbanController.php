@@ -374,7 +374,7 @@ class UrbanController extends Controller
 
     public function autogermes_products()
     {
-        $links = Link::where('id', '>', 1477)->get();
+        $links = Link::where('id', '>', 437)->get();
         foreach ($links as $link) {
             $response = $this->client->get($link->link); // URL, where you want to fetch the content
 

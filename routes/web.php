@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\CrawlerController;
 use App\Http\Controllers\UnoTechnoController;
 use App\Http\Controllers\UrbanController;
+use App\Http\Controllers\DaodaController;
 use App\Http\Controllers\HavalController;
 use Intervention\Image\Facades\Image;
 
@@ -54,6 +55,7 @@ Route::get('/quke-links', [UnoTechnoController::class, 'quke_links']);
 Route::get('/quke-products', [UnoTechnoController::class, 'quke_products']);
 Route::get('/quke-list', [UnoTechnoController::class, 'quke_list']);
 
+Route::get('/daoda-links', [DaodaController::class, 'autogermes']);
 Route::get('/autogermes-links', [UrbanController::class, 'autogermes']);
 
 Route::get('/haval-index', [HavalController::class, 'index']);
