@@ -15,7 +15,7 @@ use Symfony\Component\DomCrawler\Crawler;
 use App\Models\Link;
 use GuzzleHttp\Client;
 
-class UrbanController extends Controller
+class DaodaController extends Controller
 {
 
     private $client;
@@ -33,22 +33,6 @@ class UrbanController extends Controller
             'verify' => false
 
         ]);
-        $this->description = '<p>Chery центр Юг<br />
-        Дилерский центр предлагает полный спектр услуг по продаже и обслуживанию автомобилей марки Chery: продажа новых автомобилей, услуги кредитования и страхования, продажа и установку дополнительного оборудования и аксессуаров, гарантийное и постгарантийное сервисное обслуживание.<br />
-        Клиенты автоцентра могут ознакомиться с актуальным модельным рядом автомобилей в шоу-руме, получить квалифицированную консультацию, провести тест-драйв интересующего автомобиля.</p>
-
-        <p>В автоцентре Вы можете:<br />
-        - Купить автомобиль Chery за наличные или в кредит;<br />
-        - Обменять свой автомобиль на новый Chery по системе Trade In;<br />
-        - Купить полис ОСАГО или КАСКО на выгодных условиях;<br />
-        - Пройти сервисное обслуживание или ремонт любой сложности;<br />
-        - Купить или заказать запасные части или аксессуары Chery;<br />
-        - Приобрести и установить любое дополнительное оборудование.</p>
-
-        <p>Бонусы при покупке:<br />
-        - Рассрочка 0%.<br />
-        - Сигнализация в подарок</p>
-        ';
         $this->marks = array(
             'BMW' => '117',
             'Chery' => '34',
@@ -151,10 +135,9 @@ class UrbanController extends Controller
     public function links()
     {
 
-        $url = 'https://www.avtogermes.ru/sale/new/';
+        $url = 'https://www.avtogermes.ru/sale/';
         $pages = array(
             array("kia", 48),
-            array("lada", 52),
             array("hyundai", 13),
             array("chery", 5),
             array("suzuki", 4),
@@ -163,15 +146,16 @@ class UrbanController extends Controller
             array("renault", 9),
             array("peugeot", 4),
             array("citroen", 4),
+            array("lada", 52),
             array("uaz", 5)
         );
         for ($l = 0; $l < count($pages); $l++) {
 
 
-            for ($p = 1; $p <= $pages[$l][1]; $p++) {
+           // for ($p = 1; $p <= $pages[$l][1]; $p++) {
 
-                $uri = $url . $pages[$l][0] . '?page=' . $p;
-                //echo $uri;
+                $uri = $url . $pages[$l][0];
+               // return $uri;
 
 
                 $response = $this->client->get($uri); // URL, where you want to fetch the content
@@ -182,23 +166,40 @@ class UrbanController extends Controller
                 $crawler = new Crawler($content);
 
 
-                $data = $crawler->filter('div.pb-col')
+                $data = $crawler->filter('div.cars')->filter('div.pb-col')
                     ->each(function (Crawler $node) {
-                        return $node->filter('a')->attr('href');
+                        return $node->filter('a')->eq(1)->attr('href');
                     }
                     );
                 //return $data;
 
                 foreach ($data as $row) {
-
+                    $model = $this->getBetween($row, $pages[$l][0]."/",  "/");
+                    $res = CarModel::where('name', 'like', $model.'%')->first();
+                    if (isset($res)){
+                        $model_id = $res->id;
+                    }
+                    else {
+                        $set = New CarModel();
+                        $set->name = $model;
+                        $set->mark_id = $l+1;
+                        $set->slug = strtolower($model);
+                        $set->save();
+                        $model_id = $set->id;
+                    }
+                    //return $model;
                     $link = new Link();
                     $link->link = "https://www.avtogermes.ru" . $row;
+                    $link->mark_id = $l+1;
+                    $link->model_id = $model_id;
                     $link->category = $pages[$l][0];
                     $link->save();
+                    unset($set);
+                    //return;
                 }
 
 
-            }
+            //}
 
             sleep(15);
 
@@ -206,9 +207,9 @@ class UrbanController extends Controller
         }
     }
 
-    public function autogermes_products()
+    public function daoda_cars()
     {
-        $links = Link::where('id', '>', 1477)->get();
+        $links = Link::where('id', '>', 0)->get();
         foreach ($links as $link) {
             $response = $this->client->get($link->link); // URL, where you want to fetch the content
 
@@ -217,6 +218,21 @@ class UrbanController extends Controller
             $crawler = new Crawler($content);
             $_this = $this;
             $name = $crawler->filter('h1')->text();
+            try {
+                $str1 = $crawler->filter('i.ag-icon-rashod')->nextAll();
+                $raskhod =  floatval($this->getBetween($str1->text(), "топлива",  "л/"));
+            }catch (Exception $e) {
+                $raskhod = null;
+            }
+            try {
+                $str1 = $crawler->filter('i.ag-icon-rashod')->nextAll();
+                $raskhod =  floatval($this->getBetween($str1->text(), "топлива",  "л/"));
+            }catch (Exception $e) {
+                $raskhod = null;
+            }
+
+
+
             $name = mb_substr($name, 0, -3);
             try {
                 $description = $crawler->filter("div.table-responsive")->outerHtml();
@@ -258,6 +274,11 @@ class UrbanController extends Controller
                 $color = $crawler->filter("div.options")->filter('div.col-lg-7')->eq(4)->text();
             } catch (Exception $e) {
                 $color = null;
+            }
+            try {
+                $tkan = $crawler->filter("div.options")->filter('div.col-lg-7')->eq(5)->text();
+            } catch (Exception $e) {
+                $tkan = null;
             }
             $bodies = array(
                 "Седан" => 1,
@@ -348,6 +369,7 @@ class UrbanController extends Controller
             $product->body_id = $bodies[$kuzov] ?? 0;
             $product->uid = Str::uuid();
             $product->save();
+            return;
             sleep(3);
         }
     }
@@ -384,69 +406,18 @@ class UrbanController extends Controller
 
     }
 
-
-    public function automir_products()
+    function getBetween($string, $start = "", $end = "")
     {
-        $links = CarModel::where('id', '>', 1429)->get();
-        //return $links;
-        foreach ($links as $link) {
-
-            $response = $this->client->get('https://avtomir.ru' . $link->link); // URL, where you want to fetch the content
-            // get content and pass to the crawler
-            $content = $response->getBody()->getContents();
-            $crawler = new Crawler($content);
-            $_this = $this;
-
-
-            $name = $crawler->filter('h1')->text();
-            $name = mb_substr($name, 0, -4);
-            return $name;
-
-            try {
-                $specifications = $crawler->filter("div.product-page__specifications")->outerHtml();
-            } catch (Exception $e) {
-
-                $specifications = null;
+        if (strpos($string, $start)) { // required if $start not exist in $string
+            $startCharCount = strpos($string, $start) + strlen($start);
+            $firstSubStr = substr($string, $startCharCount, strlen($string));
+            $endCharCount = strpos($firstSubStr, $end);
+            if ($endCharCount == 0) {
+                $endCharCount = strlen($firstSubStr);
             }
-
-            // $price = (int)filter_var($crawler->filter("span.card__price-num")->text(), FILTER_SANITIZE_NUMBER_INT);
-
-            $korobka = $crawler->filter('div.product-page__params-group')->eq(0);
-            $korobka = mb_substr($korobka->filter('li.product-page__params-item')->eq(2)->text(), 8);
-
-
-            $images = $crawler->filter('a.product-page__slider-item')->each(function (Crawler $node, $i) {
-                return $node->attr('href');
-            }
-            );
-
-            foreach ($images as $image) {
-
-                if ($image !== null) {
-                    try {
-                        $contents = file_get_contents($image);
-                        $filename = substr($image, strrpos($image, '/') + 1);
-                        Storage::put($link->link . $filename, $contents);
-                    } catch (\InvalidArgumentException $e) {
-                        continue;
-                    }
-                }
-            }
-
-            $product = new RolfProduct();
-            $product->name = $name;
-            $product->pictures = $images;
-            $product->mark = $link->category;
-            $product->link = $link->link;
-            $product->owner = 0;
-            $product->year = $link->group_id;
-            $product->price = $link->price;
-            $product->engine = $link->engine;
-            $product->milage = 0;
-            $product->korobka = $korobka;
-            $product->description = $specifications;
-            $product->uid = Str::uuid();
-            $product->save();
+            return str_replace("-", " ", substr($firstSubStr, 0, $endCharCount));
+        } else {
+            return '';
         }
     }
 

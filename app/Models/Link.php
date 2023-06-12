@@ -10,6 +10,6 @@ class Link extends Model
     use HasFactory;
     protected $table = 'rolf_links';
     protected $casts = [
-        'pictures'   => 'json'
+        'images'   => 'json'
     ];
 }

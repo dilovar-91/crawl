@@ -8,10 +8,10 @@ use Illuminate\Database\Eloquent\Model;
 class MilanoProduct extends Model
 {
     use HasFactory;
-    protected $table = 'milano_products_copy';
+    protected $table = 'milano_products';
 
     protected $casts = [
-        //'pictures'   => 'json',
+        'pictures'   => 'json',
        // 'images'   => 'json',
       //  'new_images'   => 'json',
        'img'   => 'json'

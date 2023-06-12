@@ -2,6 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\AutomirMark;
+use App\Models\AutomirModel;
+use App\Models\CarBody;
 use App\Models\CarModel;
 use App\Models\RolfProduct;
 use App\Models\EboardDb;
@@ -27,11 +30,8 @@ class UrbanController extends Controller
      */
     public function __construct()
     {
-        $this->client = new Client([
-            'timeout' => 100,
-            'verify' => false
-
-        ]);
+        $this->client = new Client(['timeout' => 100,
+            'verify' => false, 'headers' => ['User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.45 Safari/537.36']]);
         $this->description = '<p>Chery центр Юг<br />
         Дилерский центр предлагает полный спектр услуг по продаже и обслуживанию автомобилей марки Chery: продажа новых автомобилей, услуги кредитования и страхования, продажа и установку дополнительного оборудования и аксессуаров, гарантийное и постгарантийное сервисное обслуживание.<br />
         Клиенты автоцентра могут ознакомиться с актуальным модельным рядом автомобилей в шоу-руме, получить квалифицированную консультацию, провести тест-драйв интересующего автомобиля.</p>
@@ -266,27 +266,15 @@ class UrbanController extends Controller
 
     }
 
-
-    public function automir()
+    public function automir_marks()
     {
 
-        $url = 'https://avtomir.ru/new-cars/';
-        $pages = array(
-            "kia",
-            "hyundai",
-            "nissan",
-            "renault",
-            "chery",
-            "volkswagen",
-            "skoda",
-            "haval",
-            "geely",
-
-        );
-        for ($l = 1; $l < count($pages); $l++) {
+        $url = 'https://avtomir.ru/';
 
 
-            $response = $this->client->get($url . $pages[$l] . '/'); // URL, where you want to fetch the content
+
+
+            $response = $this->client->get($url); // URL, where you want to fetch the content
 
             // get content and pass to the crawler
             $content = $response->getBody()->getContents();
@@ -295,19 +283,162 @@ class UrbanController extends Controller
             $_this = $this;
 
 
-            $data = $crawler->filter('div.card')
+            $data = $crawler->filter('a.carmodels__item')
                 ->each(function (Crawler $node, $i) use ($_this) {
-                    return $node->filter('a.card__name')->attr('href');
+                    return $node;
                 }
                 );
             //return $data;
 
             foreach ($data as $row) {
+                $slug = $this->getBetween($row->attr('href'), 'new-cars/', '/' );
+                $image =  $row->filter('img.carmodels__img-color')->attr('src');
+                $image_grey =  $row->filter('img.carmodels__img-grey')->attr('src');
 
-                $link = new Link();
-                $link->link = "https://avtomir.ru" . $row;
-                $link->category = $pages[$l];
+                try {
+                    $contents1 = file_get_contents('https://avtomir.ru' . $image_grey);
+                    $filename_grey = substr($image, strrpos($image_grey, '/') + 1);
+                    Storage::put('mark_logos/' . $slug . '_grey.png', $contents1);
+                } catch (\InvalidArgumentException $e) {
+                    continue;
+                }
+                try {
+                    $contents = file_get_contents('https://avtomir.ru' . $image);
+                    $filename = substr($image, strrpos($image, '/') + 1);
+                    Storage::put('mark_logos/' . $slug . '.png', $contents);
+                } catch (\InvalidArgumentException $e) {
+                    continue;
+                }
+                $link = new AutomirMark();
+                $link->name = $row->filter('div.carmodels__name')->text();
+                $link->slug = $slug;
+                $link->logo = $slug . '.png';
+                $link->logo_grey = $slug . '_grey.png';
+                $link->link = "https://avtomir.ru" . $row->attr('href');
                 $link->save();
+            }
+
+    }
+
+
+    public function automir_models()
+    {
+
+        $url = 'https://avtomir.ru/new-cars/';
+        $marks = AutomirMark::where('active', 1)->get();
+        foreach ($marks as $item) {
+
+            $response = $this->client->get($item->link); // URL, where you want to fetch the content
+
+            // get content and pass to the crawler
+            $content = $response->getBody()->getContents();
+            $crawler = new Crawler($content);
+
+            $_this = $this;
+
+
+            $data = $crawler->filter('div.category__list')->filter('div.card')
+                ->each(function (Crawler $node, $i) use ($_this) {
+                    return $node;
+                }
+                );
+            //return $data;
+
+            foreach ($data as $row) {
+                $slug =  Str::slug(substr($row->attr('data-href'), strpos($row->attr('data-href'), ($item->slug.'/'))+ strlen($item->slug.'/')));
+                //return $slug;
+                $tmp = $row->filter('div.card__text-links a')->attr('href');
+                $body_slug = substr($tmp, strpos($tmp, "#") + 1);
+                //return $body_slug;
+                $body = CarBody::firstOrNew(['name'=>$row->filter('a.card__text-link')->text()], ['slug'=>$body_slug]);
+                $body->save();
+
+                $image = $row->filter('div.card__img img')->attr('data-src');
+                try {
+                    $contents = file_get_contents('https://avtomir.ru' . $image);
+                    $filename = $item->slug.'_'.Str::snake($slug) . '.png';
+                    Storage::put('model_images/' . $item->slug.'_'.Str::snake($slug) . '.png', $contents);
+                } catch (\InvalidArgumentException $e) {
+                    continue;
+                }
+
+                $str = new CarModel();
+                $str->name =  substr($row->filter('a.card__name')->text(), strpos($row->filter('a.card__name')->text(), " ") + 1);
+                $str->slug = $slug;
+                $str->picture = $filename;
+                try{
+                    $str->year = preg_replace('/^[^\d]*(\d{4}).*$/', '\1',$row->filter('div.card__date')->text());
+                } catch (\InvalidArgumentException $e) {
+                    //continue;
+                }
+
+                $str->body_id = $body->id;
+                $str->mark_id = $item->id;
+                $str->link = "https://avtomir.ru" . $row->attr('data-href');
+                $str->save();
+
+            }
+
+
+        }
+    }
+
+    public function automir_complectations()
+    {
+
+
+        $models = AutomirModel::get();
+        foreach ($models as $item) {
+
+            $response = $this->client->get($item->link); // URL, where you want to fetch the content
+
+            // get content and pass to the crawler
+            $content = $response->getBody()->getContents();
+            $crawler = new Crawler($content);
+
+            $_this = $this;
+
+
+            $data = $crawler->filter('a.category__list_bordered-link')
+                ->each(function (Crawler $node, $i) use ($_this) {
+                    return $node;
+                }
+                );
+            //return $data;
+
+            foreach ($data as $row) {
+                $slug =  Str::slug($this->getBetween($row->attr('href'), $item->slug . '/', '/'));
+                return $slug;
+                $tmp = $row->filter('div.card__text-links a')->attr('href');
+                $body_slug = substr($tmp, strpos($tmp, "#") + 1);
+                //return $body_slug;
+                $body = CarComplectation::firstOrNew(['name'=>$row->filter('a.card__text-link')->text()], ['slug'=>$body_slug]);
+                $body->save();
+
+                $image = $row->filter('div.card__img img')->attr('data-src');
+                try {
+                    $contents = file_get_contents('https://avtomir.ru' . $image);
+                    $filename = $item->slug.'_'.Str::snake($slug) . '.png';
+                    Storage::put('model_images/' . $item->slug.'_'.Str::snake($slug) . '.png', $contents);
+                } catch (\InvalidArgumentException $e) {
+                    continue;
+                }
+
+                $str = new CarModel();
+                $str->name =  substr($row->filter('a.card__name')->text(), strpos($row->filter('a.card__name')->text(), " ") + 1);
+                $str->slug = $slug;
+                $str->picture = $filename;
+                try{
+                    $str->year = preg_replace('/^[^\d]*(\d{4}).*$/', '\1',$row->filter('div.card__date')->text());
+                } catch (\InvalidArgumentException $e) {
+                    //continue;
+                }
+
+                $str->body_id = $body->id;
+                $str->mark_id = $item->id;
+                $str->link = "https://avtomir.ru" . $row->attr('data-href');
+                $str->save();
+
             }
 
 
@@ -622,5 +753,20 @@ class UrbanController extends Controller
             $str = substr_replace($str, $replace, $pos, $search_length);
         }
         return $str;
+    }
+
+    function getBetween($string, $start = "", $end = "")
+    {
+        if (strpos($string, $start)) { // required if $start not exist in $string
+            $startCharCount = strpos($string, $start) + strlen($start);
+            $firstSubStr = substr($string, $startCharCount, strlen($string));
+            $endCharCount = strpos($firstSubStr, $end);
+            if ($endCharCount == 0) {
+                $endCharCount = strlen($firstSubStr);
+            }
+            return str_replace("-", " ", substr($firstSubStr, 0, $endCharCount));
+        } else {
+            return '';
+        }
     }
 }

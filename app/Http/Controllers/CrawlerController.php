@@ -6,7 +6,7 @@ use Illuminate\Http\Request;
 use Symfony\Component\DomCrawler\Crawler;
 use GuzzleHttp\Exception\GuzzleException;
 use GuzzleHttp\Client;
-use Exception;
+use Throwable;
 use App\Models\Link;
 use App\Models\Product;
 use App\Models\Attachment;
@@ -63,6 +63,147 @@ class CrawlerController extends Controller
 
         }
     }
+
+    public function trofey_link()
+    {
+        $url = "https://trofey.ru/catalog/rybalka/?PAGEN_1=";
+
+
+
+        for ($i = 1; $i <= 753; $i++) {
+
+            $response = $this->client->get($url . $i); // URL, where you want to fetch the content
+            // get content and pass to the crawler
+            $content = $response->getBody()->getContents();
+            $crawler = new Crawler($content);
+
+            $_this = $this;
+
+            $data = $crawler->filter('div.item-e-inner')
+                ->each(function (Crawler $node, $i) use ($_this) {
+                    return $node->filter('a.block')->attr('href');
+
+                }
+                );
+            //return $data;
+            $categories = array(
+                'aksessuary_dlya_zimney_rybalki' => 'Зимняя рыбалка',
+                'udilishcha_spinningi' => 'Удилища, спиннинги',
+                'primanki_1' => 'Приманки',
+                'katushki' => 'Катушки',
+                'aksessuary_dlya_rybalki' => 'Аксессуары для рыбалки',
+                'leska' => 'Леска рыболовная',
+                'prikormki_aromatizatory_1' => 'Прикормки, ароматизаторы',
+                'yashchiki_korobki_kany_rybolovnye' => 'Ящики, коробки, каны рыболовные',
+                'materialy_dlya_nakhlysta' => 'Материалы для нахлыста',
+                'gotovye_osnastki' => 'Готовые оснастки',
+                'poplavki' => 'Поплавки',
+                'kresla_rybolovnye_platformy_i_obves' => 'Кресла рыболовные, платформы и обвес',
+                'kryuchki' => 'Крючки',
+                'sumki_rybolovnye' => 'Сумки рыболовные',
+                'tubusy_chekhly' => 'Тубусы, чехлы',
+                'nitki_rybolovnye' => 'Нитки рыболовные',
+                'ochki_polyarizatsionnye' => 'Очки поляризационные',
+                'karpovye_palatki' => 'Карповые палатки',
+                'podarok_rybaku' => 'Подарок рыбаку',
+                'podsachiki' => 'Подсачеки',
+                'prochie_rybolovnye_tovary' => 'Прочие рыболовные товары',
+                'rakolovki_podemniki' => 'Раколовки, подъемники',
+                'sadki' => 'Садки',
+                'stoyki_1' => 'Стойки',
+                'furnitura_rybolovnaya' => 'Фурнитура рыболовная',
+                'rybolovnye_nabory_i_komplekty' => 'Рыболовные наборы и комплекты'
+            );
+
+            foreach ($data as $row) {
+                $car_url =  $this->getBetween($row, "rybalka/", "/");
+                $link = new Link();
+                $link->link = "https://trofey.ru" . $row;
+                $link->category =$categories[$car_url] ?? null;
+                $link->save();
+            }
+
+
+        }
+    }
+
+    public function trofey_products()
+    {
+        $links = Link::where('id', '>', 0)->get();
+        foreach ($links as $link) {
+
+
+            $response = $this->client->get($link->link); // URL, where you want to fetch the content
+            // get content and pass to the crawler
+            $content = $response->getBody()->getContents();
+            $crawler = new Crawler($content);
+            $_this = $this;
+
+            $name = $crawler->filter('h1 span')->text();
+
+            //$category = $crawler->filter('div.breadcrumbs a')->eq(1)->text();
+            //$mark = $crawler->filter('li.product-manufacturer a')->text();
+            // $model = $crawler->filter('li.product-model span')->text();
+            // $price_usd = substr($crawler->filter('div.product-price')->text(), 1) ?? null;
+            //$price = ($price_usd + 1) *75;
+            // $feature = $crawler->filter('div.table-responsive')->outerHtml();
+
+            try {
+                $price = $crawler->filter('div.item_current_price')->attr('data-price');
+            } catch (\InvalidArgumentException $e) {
+                $price = 0;
+            }
+
+
+            $images = $crawler->filter('div.item')
+                ->each(function (Crawler $node, $i) use ($_this) {
+                    return $node->outerHtml();
+
+                }
+                );
+
+            return $images;
+
+            try {
+                $desc = $crawler->filter('div.product_text p')->text();
+            } catch (\InvalidArgumentException $e) {
+                $desc = null;
+            }
+
+
+            $test = $crawler->filter('div.product_right .pr_6 span.select_input .si_drop_down_list')->count();
+            //return $test;
+
+            //$disabled[] = $crawler->filter('div.product_right .si_drop_down_list')->count();
+
+
+            //return  response()->json($disabled);
+
+            if ($test <= 0) {
+                $data = array($crawler->filter('span.si_value')->text(), $crawler->filter('div.block_price .price')->text());
+            } else {
+                $data = $crawler->filter('div.product_right span.si_drop_down_list')->eq(0)->filter('span.ddl_item')
+                    ->each(function (Crawler $node, $i) use ($_this) {
+                        return array($node->text(), $node->filter('span.ddl_item')->attr('data-price'));
+                    });
+            }
+            //return $data;
+
+            $images = $crawler->filter('a.thumb_item')
+                ->each(function (Crawler $node, $i) use ($_this) {
+                    return $node->attr('href');
+                }
+                );
+            $product = new OrekhvillProduct();
+            $product->name = $name;
+            $product->description = $desc;
+            $product->pictures = $images;
+            $product->attributes = $data;
+            $product->category = $category;
+            $product->save();
+        }
+    }
+
 
     public function orekhvill()
     {
@@ -249,15 +390,65 @@ class CrawlerController extends Controller
         }
     }
 
+
+    public function milano2()
+    {
+        $url = "https://leventozel.com.tr/ru/curtain-models?page=";
+
+            for ($i = 1; $i <= 19; $i++) {
+
+                    $response = $this->client->get($url.$i); // URL, where you want to fetch the content
+
+
+                // get content and pass to the crawler
+                $content = $response->getBody()->getContents();
+                $crawler = new Crawler($content);
+
+                $_this = $this;
+
+                $data = $crawler->filter('div.product-thumb')
+                    ->each(function (Crawler $node) use ($_this) {
+                        return $node->filter('a.product-img')->attr('href');
+
+                    }
+                    );
+
+                    //return $data;
+
+                foreach ($data as $row) {
+                    $category = $this->getBetween($row, 'ru/', '/');
+                    $link = new Link();
+                    $link->link = $row;
+                    $link->category = $this->my_mb_ucfirst($category);
+                    $link->category_id = 1;
+                    $link->save();
+                }
+            }
+
+
+
+
+    }
+
+    public function milano_products2()
+    {
+
+        $products = MilanoProduct::get(['id','name', 'link', 'pictures']);
+        return $products;
+        return view("milano", compact('products'));
+
+    }
+
     public function milano_products()
     {
+        //return rand(3,6);
         // $url = "https://leventozel.com.tr/ru/%D0%B2%D1%8B%D1%88%D0%B8%D1%82%D1%8B%D0%B5-%D1%82%D1%8E%D0%BB%D0%B5%D0%B2%D1%8B%D0%B5-%D1%82%D0%BA%D0%B0%D0%BD%D0%B8-%D0%B4%D0%BB%D1%8F-%D1%88%D1%82%D0%BE%D1%80";
         //for ($i=1; $i<=1; $i++){
-        $links = Link::get();
+        $links = Link::where("id", ">", 282)->get();
         foreach ($links as $link) {
 
-
-            $response = $this->client->get($link->link); // URL, where you want to fetch the content
+            $client = new Client(['headers' => ['User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.45 Safari/537.36']]);
+            $response = $client->get($link->link); // URL, where you want to fetch the content
             // get content and pass to the crawler
             $content = $response->getBody()->getContents();
             $crawler = new Crawler($content);
@@ -265,8 +456,8 @@ class CrawlerController extends Controller
             $_this = $this;
 
             $name = $crawler->filter('div.page-title')->text();
-            $mark = $crawler->filter('li.product-manufacturer a')->text();
-            $model = $crawler->filter('li.product-model span')->text();
+           // $mark = $crawler->filter('li.product-manufacturer a')->text();
+            //$model = $crawler->filter('li.product-model span')->text();
             $price_usd = substr($crawler->filter('div.product-price')->text(), 1) ?? null;
             $price = ($price_usd + 1) * 75;
             $feature = $crawler->filter('div.table-responsive')->outerHtml();
@@ -288,32 +479,53 @@ class CrawlerController extends Controller
 
             $pictures = [];
 
+            $folder_name = substr($link->link, strpos($link->link, "модели-штор/") + 22);
+            //return response()->json($images);
+
+
 
             foreach ($images as $key => $image) {
-                // sleep(5);
+                 //sleep(2);
                 //$filename = $link->id.'_'.($key+1).'_'.Str::random(5).'_'.basename($image);
-                //Image::make($image)->save(public_path("images/". $filename));
+                //$filename = basename($image);
+                //try {
+
+                    //$image = mb_convert_encode($image,'HTML-ENTITIES','UTF-8');
+                   // $image =mb_convert_encoding($image, 'UTF-8', "ISO-8859-1");
+                         //$contents = file_get_contents($image);
+                      //   $filename = substr($image, strrpos($image, '/') + 1);
+                             //Storage::put("milano_images/" . $folder_name . '/' . $filename, $contents);
+                         //    Image::make($image)->save(public_path("milano_images/" . $folder_name . '/'. $filename));
+                       // }
+                      //  catch (\InvalidArgumentException $e) {
+
+                     //  }
+
+
+
                 $pictures[] = $image;
             }
 
 
             $product = new MilanoProduct();
             $product->name = $name;
-            $product->mark = $mark;
-            $product->model = $model;
+           // $product->mark = $mark;
+            //$product->model = $model;
             $product->price_usd = $price_usd;
             $product->price = $price;
             $product->description = $feature;
             $product->pictures = $pictures;
             $product->link = $link->link;
             $product->category_id = $link->category_id;
-            $product->category = $link->category;
+            $product->category = $folder_name;
+            //return $product;
             $product->save();
-            $parent_id = $product->id;
+            //$parent_id = $product->id;
             // dd($product); die();
+            //sleep(rand(3,6));
 
 
-            foreach ($data as $key => $row) {
+            /*foreach ($data as $key => $row) {
                 //sleep(80);
                 $response2 = $this->client->get($row); // URL, where you want to fetch the content
                 // get content and pass to the crawler
@@ -360,10 +572,12 @@ class CrawlerController extends Controller
                 $product2->link = $row;
                 $product2->save();
 
-            }
+            }*/
             // dd($product2);
         }
     }
+
+
 
 
     function getBetween($string, $start = "", $end = "")
@@ -1185,6 +1399,54 @@ class CrawlerController extends Controller
         return response()->json($product);
     }
 
+    public function autoru()
+    {
+        try {
+            $response = $this->client->get('https://auto.ru/cars/used/sale/nissan/x_trail/1076146205-e2d0ab8e/');
+            // get content and pass to the crawler
+            $content = $response->getBody()->getContents();
+            $crawler = new Crawler($content);
+            $_this = $this;
+            return $crawler->outerHtml(); //each(function (Crawler $node, $i) use ($_this) {
+           //     return $node->filter('img')->attr('src');
+            ///}
+           // );
+            //return $crawler->filter('.ImageGalleryDesktop__image')->outerHtml();
+
+           
+            $array = [
+                'title' => $this->hasContent($crawler->filter('h1')) != false ? $crawler->filter('h1')->text() : '',
+                'price' => $this->hasContent($crawler->filter('span.pr')) != false ? $crawler->filter('span.pr')->text() : '',
+                'feature' => $this->hasContent($crawler->filter('table.cartable2')) != false ? $crawler->filter('table.cartable2')->outerHtml() : '',
+                'tpad2' => $this->hasContent($crawler->filter('p.tpad2')) != false ? $crawler->filter('p.tpad2')->outerHtml() : '',
+                'featured_image' => [
+                    $this->hasContent($crawler->filter('a.photo0')) != false ? $crawler->filter('a.photo0')->eq(0)->attr('href') : '',
+                    $this->hasContent($crawler->filter('a.photo1')) != false ? $crawler->filter('a.photo1')->eq(0)->attr('href') : '',
+                    $this->hasContent($crawler->filter('a.photo2')) != false ? $crawler->filter('a.photo2')->eq(0)->attr('href') : '',
+                    $this->hasContent($crawler->filter('a.photo3')) != false ? $crawler->filter('a.photo3')->eq(0)->attr('href') : '',
+                ]
+            ];
+
+            $images = $crawler->filter('div.main-image .swiper-slide')
+                ->each(function (Crawler $node, $i) use ($_this) {
+                    return $node->filter('img')->attr('src');
+
+                }
+                );
+
+            $item = new Universal();
+            $item =
+
+                dd($array);
+            // header("Content-type: image/gif");
+            //echo base64_decode($crawler->filter('div.swiper-slide img'));
+
+        } catch (Exception $e) {
+            echo $e->getMessage();
+        }
+    }
+    
+
     public function tradein()
     {
         try {
@@ -1683,7 +1945,8 @@ class CrawlerController extends Controller
 
     public function rolf_products()
     {
-        $links = Link::where('id', '>', 55)->get();
+        return 124;
+        $links = Link::where('id', '>', 0)->get();
         foreach ($links as $link) {
 
             try {
@@ -1756,7 +2019,7 @@ class CrawlerController extends Controller
                         if ($image === '/static/images/banners/premium-banner1.jpg') continue;
                         $contents = file_get_contents($image);
                         $filename = substr($image, strrpos($image, '/') + 1);
-                        Storage::put("testrest/" . $mark . '/' . $model . '-'. $page. '/' . $filename, $contents);
+                        Storage::put("rolf3/" . $mark . '/' . $model . '-'. $page. '/' . $filename, $contents);
                     } catch (\InvalidArgumentException $e) {
                         continue;
                     }
@@ -1765,7 +2028,7 @@ class CrawlerController extends Controller
             }
             //sleep(1);
 
-            $product = new RolfProduct();
+            /*$product = new RolfProduct();
             $product->name = $title !== null ? $title : $name;
             $product->pictures = $images;
             $product->mark = $mark;
@@ -1779,7 +2042,7 @@ class CrawlerController extends Controller
             $product->milage = $milage;
             $product->korobka = $korobka;
             $product->uid = Str::uuid();
-            $product->save();
+            $product->save(); */
         }
     }
 
