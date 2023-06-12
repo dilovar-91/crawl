@@ -5,11 +5,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Link extends Model
+class Link2 extends Model
 {
     use HasFactory;
-    protected $table = 'milano_links';
-    protected $casts = [
-        'images'   => 'json'
-    ];
+    protected $table = 'milano_sub_links';
 }

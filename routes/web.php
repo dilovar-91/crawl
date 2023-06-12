@@ -33,6 +33,7 @@ Route::get('/parse-links', [CrawlerController::class, 'parse_links']);
 Route::get('/planeta-links', [CrawlerController::class, 'planeta_links']);
 Route::get('/parse', [CrawlerController::class, 'parse']);
 Route::get('/milano_links', [CrawlerController::class, 'milano2']);
+Route::get('/milano_group', [CrawlerController::class, 'milano_group']);
 Route::get('/milano-products', [CrawlerController::class, 'milano_products']);
 Route::get('/milano-products2', [CrawlerController::class, 'milano_products2']);
 Route::get('/milano-download', [CrawlerController::class, 'download_images']);

@@ -393,7 +393,7 @@ class CrawlerController extends Controller
 
     public function milano2()
     {
-        $url = "https://leventozel.com.tr/ru/curtain-models?page=";
+        $url = "https://leventozel.com.tr/ru/%D0%BC%D0%BE%D0%B4%D0%B5%D0%BB%D0%B8-%D1%88%D1%82%D0%BE%D1%80??page=";
 
             for ($i = 1; $i <= 19; $i++) {
 
@@ -419,6 +419,55 @@ class CrawlerController extends Controller
                     $category = $this->getBetween($row, 'ru/', '/');
                     $link = new Link();
                     $link->link = $row;
+                    $link->category = $this->my_mb_ucfirst($category);
+                    $link->category_id = 1;
+                    $link->save();
+                }
+            }
+
+
+
+
+    }
+
+    public function milano_group()
+    {
+            $links = Link::get();
+
+            foreach ($links as $link) {
+
+                    $response = $this->client->get($link->link); // URL, where you want to fetch the content
+
+
+                // get content and pass to the crawler
+                $content = $response->getBody()->getContents();
+                $crawler = new Crawler($content);
+
+                $_this = $this;
+
+                $data = $crawler->filter('.prodvar li')
+                    ->each(function (Crawler $node) use ($_this) {
+                        return $node->filter('a')->filter('img')->attr('src');
+
+                    }
+                    );
+
+                    return $data;
+
+                $data = $crawler->filter('.radio')
+                    ->each(function (Crawler $node) use ($_this) {
+                        return $node->filter('img')->attr('src');
+
+                    }
+                    );
+
+                    return $data;
+
+                foreach ($data as $row) {
+                    $category = $this->getBetween($row, 'ru/', '/');
+                    $link = new Link2();
+                    $link->link = $row;
+                    $link->group_id = $link->id;
                     $link->category = $this->my_mb_ucfirst($category);
                     $link->category_id = 1;
                     $link->save();
