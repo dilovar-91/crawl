@@ -77,10 +77,10 @@ class RolfController extends Controller
 
     public function links()
     {
-        $url = 'https://rolf-probeg.ru/spb/cars/page/';
-        for ($i = 1; $i <= 108; $i++) {
+        $url = 'https://rolf-probeg.ru/all/cars/page/';
+        for ($i = 1; $i <= 194; $i++) {
 
-            $response = $this->client->get($url . $i . '/?dealer%5B0%5D=17'); // URL, where you want to fetch the content
+            $response = $this->client->get($url . $i . '/?min_year=2021'); // URL, where you want to fetch the content
             // get content and pass to the crawler
             $content = $response->getBody()->getContents();
             $crawler = new Crawler($content);
